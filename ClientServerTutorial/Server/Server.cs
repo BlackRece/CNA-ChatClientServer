@@ -61,9 +61,22 @@ namespace Server {
 
                 if (receivedMessage.ToLower() == "end") break;
 
+                //broadcast to all clients
+                if(receivedMessage.StartsWith("@")) {
+                    Client[] allClients = _clients.ToArray();
+                    for(int i = 0; i < _clients.Count; i++) {
+                        if(client != allClients[i]) {
+                            client.Send(
+                                client._port + " said:" +
+                                receivedMessage.Substring(1)
+                            );
+                        }
+                    }
+                } else {
                 string responseMessage = GetReturnMessage(receivedMessage);
 
                 client.Send(responseMessage);
+                }
             }
 
             client.Close();
