@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Client { 
     class Program {
+        [STAThread]
         static void Main(string[] args) {
             Client client = new Client();
 
