@@ -7,9 +7,12 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Button Content="Submit" HorizontalAlignment="Left" Margin="707,389,0,0" VerticalAlignment="Top" Width="75" Name="SubmitButton" Click="SubmitButton_Click"/>
-        <TextBox HorizontalAlignment="Left" Height="371" Margin="10,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="772" Name="MessageWindow" IsReadOnly="True"/>
-        <TextBox HorizontalAlignment="Left" Height="23" Margin="10,386,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="692" Name="InputField"/>
+        <Button Name="SubmitButton" Content="Submit" HorizontalAlignment="Left" Margin="707,389,0,0" VerticalAlignment="Top" Width="75"  Click="SubmitButton_Click"/>
+        <TextBox Name="MessageWindow" HorizontalAlignment="Left" Height="338" Margin="10,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="772"  IsReadOnly="True"/>
+        <TextBox Name="InputField" HorizontalAlignment="Left" Height="23" Margin="10,386,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="692" />
+        <Label Name="NickName" Content="Label" HorizontalAlignment="Left" Margin="10,353,0,0" VerticalAlignment="Top" Width="170" MouseDoubleClick="NickName_MouseDoubleClick"/>
+        <TextBox x:Name="ChangeName_textbox" HorizontalAlignment="Left" Height="23" Margin="185,353,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+        <Button x:Name="ChangeName_button" Content="Button" HorizontalAlignment="Left" Margin="310,353,0,0" VerticalAlignment="Top" Width="75" Click="ChangeName_button_Click"/>
 
     </Grid>
 </Window>

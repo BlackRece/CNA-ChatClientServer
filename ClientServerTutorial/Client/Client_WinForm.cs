@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Packets;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,6 +17,7 @@ namespace Client {
             InitializeComponent();
 
             _client = client;
+            UpdateNickName(_client._nick);
         }
 
         public void UpdateChatWindow(string message) {
@@ -30,19 +32,46 @@ namespace Client {
                     MessageWindow.ScrollToCaret();
                 }
             } catch (Exception e) {
-                MessageWindow.Text +=
-                    "ERROR: " + Environment.NewLine +
-                    e.Message + Environment.NewLine;
-                MessageWindow.SelectionStart = MessageWindow.Text.Length;
-                MessageWindow.ScrollToCaret();
+                DisplayError(e);
+            }
+        }
+
+        public void UpdateNickName(string name) {
+            try {
+                if (NickName_label.InvokeRequired) {
+                    Invoke(new Action(() => {
+                        UpdateNickName(name);
+                    }));
+                } else {
+                    NickName_label.Text = _client._nick;
+                }
+            } catch (Exception e) {
+                DisplayError(e);
             }
         }
 
         private void SubmitButton_Click(object sender, EventArgs e) {
-            if (_client.SendPacket(InputField.Text)) {
+            if (_client.SendPacket(new ChatMessagePacket(InputField.Text))) {
                 InputField.Clear();
                 InputField.Focus();
             }
+        }
+
+        private void ChangeName_Button_Click(object sender, EventArgs e) {
+            if(ChangeName_textbox.TextLength > 0) {
+                if (_client.SendPacket(new ClientNamePacket(ChangeName_textbox.Text))) {
+                    ChangeName_textbox.Clear();
+                    InputField.Focus();
+                }
+            }
+        }
+
+        private void DisplayError(Exception e) {
+            MessageWindow.Text += Environment.NewLine +
+                    "ERROR: " + Environment.NewLine +
+                    e.Message + Environment.NewLine;
+            MessageWindow.SelectionStart = MessageWindow.Text.Length;
+            MessageWindow.ScrollToCaret();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Packets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,18 +33,50 @@ namespace Client {
                     MessageWindow.ScrollToEnd();
                 });
             } catch (Exception e) {
-                MessageWindow.Text +=
-                    "ERROR: " + Environment.NewLine +
-                    e.Message + Environment.NewLine;
-                MessageWindow.ScrollToEnd();
+                DisplayError(e);
+            }
+        }
+
+        public void UpdateNickName(string name) {
+            try {
+                NickName.Dispatcher.Invoke(() => {
+                    NickName.Content = name;
+                });
+            } catch (Exception e) {
+                DisplayError(e);
             }
         }
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e) {
-            if (_client.SendPacket(InputField.Text)) {
+            ChatMessagePacket chatPacket = new ChatMessagePacket(InputField.Text);
+
+            if (_client.SendPacket(chatPacket)) {
                 InputField.Clear();
                 InputField.Focus();
             }
+        }
+
+        private void NickName_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+
+        }
+
+
+        private void ChangeName_button_Click(object sender, RoutedEventArgs e) {
+            ClientNamePacket namePacket = new ClientNamePacket(ChangeName_textbox.Text);
+
+            if(ChangeName_textbox.Text.Length > 0) {
+                if(_client.SendPacket(namePacket)) {
+                    ChangeName_textbox.Clear();
+                    InputField.Focus();
+                }
+            }
+        }
+
+        private void DisplayError(Exception e) {
+            MessageWindow.Text += Environment.NewLine +
+                    "ERROR: " + Environment.NewLine +
+                    e.Message + Environment.NewLine;
+            MessageWindow.ScrollToEnd();
         }
     }
 }

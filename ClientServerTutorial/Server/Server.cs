@@ -15,7 +15,7 @@ namespace Server {
 
         TcpListener _tcpListener;
 
-        ConcurrentBag<Client> _clients;
+        ConcurrentDictionary<int, Client> _clients;
         int _maxClients = 4;
 
         public Server(string ipAddress, int port) {
@@ -23,12 +23,16 @@ namespace Server {
         }
 
         public void Start() {
-            _clients = new ConcurrentBag<Client>();
+            int clientIndex = 0;
+            _clients = new ConcurrentDictionary<int, Client>();
 
             _tcpListener.Start();
             Console.WriteLine("Starting server...");
 
             while (true) {
+                int index = clientIndex;
+                clientIndex++;
+
                 Client newClient = new Client(_tcpListener.AcceptSocket());
                 Thread thread;
 
@@ -37,9 +41,10 @@ namespace Server {
 
                     thread = new Thread(() => { RejectClient(newClient); });
                 } else {
-                    _clients.Add(newClient);
+                    _clients.TryAdd(index, newClient);
 
-                    thread = new Thread(() => { ClientMethod(newClient); });
+                    //thread = new Thread(() => { ClientMethod(newClient); });
+                    thread = new Thread(() => { ClientMethod(index); });
                 }
 
                 thread.Start();
@@ -50,90 +55,84 @@ namespace Server {
             _tcpListener.Stop();
         }
 
-        void ClientMethod(Client client) {
+        void ClientMethod(int index) {
             Console.WriteLine("Socket opened. (" + _tcpListener.ToString() + ")");
 
             Packet receivedPacket;
+            Client client = _clients[index];
+            List<string> usernames = new List<string>();
 
-            Client[] allClients;
+            try {
+                while ((receivedPacket = client.Read()) != null) {
+                    Console.Write("Receieved: ");
 
-            //client.Send("Connection Successful.");
+                    // collect user names
+                    foreach (KeyValuePair<int, Client> c in _clients)
+                        usernames.Add(c.Value._name);
 
-            while ((receivedPacket = client.Read()) != null) {
-                Console.Write("Receieved: ");
+                    // act on packet type
+                    switch (receivedPacket._packetType) {
+                        case Packet.PacketType.EMPTY:
+                            Console.WriteLine("EMPTY");
 
-                allClients = _clients.ToArray();
+                            /* do nothing */
+                            break;
+                        case Packet.PacketType.CHATMESSAGE:
+                            Console.WriteLine("CHAT");
 
-                switch (receivedPacket._packetType) {
-                    case Packet.PacketType.EMPTY:
-                        Console.WriteLine("EMPTY");
+                            RespondToAll((ChatMessagePacket)receivedPacket, client);
 
-                        /* do nothing */
-                        break;
-                    case Packet.PacketType.CHATMESSAGE:
-                        Console.WriteLine("CHAT");
+                            break;
+                        case Packet.PacketType.PRIVATEMESSAGE:
+                            Console.WriteLine("PRIVATE");
 
-                        RespondToAll((ChatMessagePacket)receivedPacket, client);
+                            RespondTo((PrivateMessagePacket)receivedPacket, client);
 
-                        break;
-                    case Packet.PacketType.PRIVATEMESSAGE:
-                        Console.WriteLine("PRIVATE");
+                            break;
+                        case Packet.PacketType.SERVERMESSAGE:
+                            Console.WriteLine("SERVER");
 
-                        RespondTo((PrivateMessagePacket)receivedPacket, client);
+                            ServerMessagePacket servPacket = (ServerMessagePacket)receivedPacket;
+                            servPacket._messageRecv = GetReturnMessage(servPacket._messageSent);
+                            client.Send(servPacket);
 
-                        break;
-                    case Packet.PacketType.SERVERMESSAGE:
-                        Console.WriteLine("SERVER");
+                            break;
+                        case Packet.PacketType.CLIENTNAME:
+                            Console.WriteLine("NAME");
 
-                        ServerMessagePacket servPacket = (ServerMessagePacket)receivedPacket;
-                        servPacket._messageRecv = GetReturnMessage(servPacket._messageSent);
-                        client.Send(servPacket);
+                            ClientNamePacket namePacket = (ClientNamePacket)receivedPacket;
+                            // create message
+                            namePacket._message = client._name + " changed name to " + namePacket._name;
 
-                        break;
-                    case Packet.PacketType.CLIENTNAME:
-                        Console.WriteLine("NAME");
+                            // change name
+                            client._name = namePacket._name;
 
-                        ClientNamePacket namePacket = (ClientNamePacket)receivedPacket;
-                        client._name = namePacket._name;
-                        namePacket._message = "Name changed.";
-                        client.Send(namePacket);
+                            // update client
+                            client.Send(namePacket);
 
-                        break;
-                    case Packet.PacketType.ERROR:
-                        //should be for other things, in another place
-                        Console.WriteLine("ERROR");
+                            // notify all clients
+                            RespondToAll(new ChatMessagePacket(namePacket._message), client);
 
-                        ErrorMessagePacket errPacket = (ErrorMessagePacket)receivedPacket;
-                        client.Send(errPacket);
-                        break;
-                    default:
-                        break;
-                }
+                            break;
+                        case Packet.PacketType.ERROR:
+                            //should be for other things, in another place
+                            Console.WriteLine("ERROR");
 
-                //if (receivedMessage.ToLower() == "end") break;
-
-                //broadcast to all clients
-                /*
-                if (receivedPacket.StartsWith("@")) {
-                    Client[] allClients = _clients.ToArray();
-                    for (int i = 0; i < _clients.Count; i++) {
-                        if (client != allClients[i]) {
-                            client.Send(
-                                client._port + " said:" +
-                                receivedPacket.Substring(1)
-                            );
-                        }
+                            ErrorMessagePacket errPacket = (ErrorMessagePacket)receivedPacket;
+                            client.Send(errPacket);
+                            break;
+                        default:
+                            break;
                     }
-                } else {
-                    string responseMessage = GetReturnMessage(receivedPacket);
-
-                    client.Send(responseMessage);
                 }
-                */
+            } catch (Exception e) {
+                Console.WriteLine("Error: " + e.Message);
+                if (client != null)
+                    Console.WriteLine("Client: " + client._name);
             }
 
             client.Close();
-            _clients.TryTake(out client);
+            _clients.TryRemove(index, out client);
         }
 
         void RejectClient(Client client) {
@@ -154,21 +153,25 @@ namespace Server {
         }
 
         void RespondToAll(ChatMessagePacket chatPacket, Client source) {
-            Client[] allClients = _clients.ToArray();
+            string msg = source._name + ": " + chatPacket._message;
 
-            for (int i = 0; i < _clients.Count; i++)
-                //if (source != allClients[i])
-                    allClients[i].Send(chatPacket);
-
+            foreach(KeyValuePair<int, Client> pair in _clients) { 
+                if(source != pair.Value) {
+                    chatPacket._message = source._name + ": " + chatPacket._message;
+                    pair.Value.Send(chatPacket);
+                } else {
+                    chatPacket._message = "me: " + chatPacket._message;
+                    pair.Value.Send(chatPacket);
+                }
+            }
         }
 
         void RespondTo(PrivateMessagePacket privPacket, Client source) {
-            Client[] allClients = _clients.ToArray();
-
-            for (int i = 0; i < _clients.Count; i++) {
-                if (allClients[i]._port.ToString() == privPacket._target) {
-                    allClients[i].Send(privPacket);
-                }
+            foreach (KeyValuePair<int, Client> pair in _clients) {
+                if (pair.Value._name == privPacket._target) {
+                    privPacket._message = source._name + ": " + privPacket._message;
+                    pair.Value.Send(privPacket);
+                } 
             }
         }
     }

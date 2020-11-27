@@ -9,7 +9,8 @@ namespace Packets {
             CHATMESSAGE,
             PRIVATEMESSAGE,
             SERVERMESSAGE,
-            CLIENTNAME
+            CLIENTNAME,
+            USERLIST
         }
 
         public PacketType _packetType { get; protected set; }
@@ -73,6 +74,15 @@ namespace Packets {
             _messageRecv = messageReceived;
 
             _packetType = PacketType.SERVERMESSAGE;
+        }
+    }
+
+    [Serializable]
+    public class UserListPacket : Packet {
+        public string[] _users;
+
+        public UserListPacket(string[] users) {
+            _users = users;
         }
     }
 }

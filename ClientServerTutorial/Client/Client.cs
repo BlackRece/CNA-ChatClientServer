@@ -11,10 +11,23 @@ using System.Threading.Tasks;
 
 namespace Client {
     public class Client {
-        bool _isWPF;
         struct WinClient {
             bool IsWPF { get; }
             private bool _isWPF;
+
+            private string _name;
+            public string name {
+                get { return _name; }
+                set {
+                    if (value.Length > 0) {
+                        _name = value;
+                        if (_isWPF)
+                            _wpf.UpdateNickName(value);
+                        else
+                            _win.UpdateNickName(value);
+                    }
+                }
+            }
 
             private Client_WinForm _win;
             private Client_WPFForm _wpf;
@@ -37,6 +50,7 @@ namespace Client {
                 else
                     _win.UpdateChatWindow(message);
             }
+
         }
         
         TcpClient _tcpClient;
@@ -47,11 +61,9 @@ namespace Client {
         BinaryReader _reader;
         BinaryWriter _writer;
 
-        WinClient _cWin;
-        Client_WinForm _win;
-        Client_WPFForm _wpf;
+        WinClient _win;
 
-        string _nick;
+        public string _nick;
 
         public Client() {
             _tcpClient = new TcpClient();
@@ -78,13 +90,7 @@ namespace Client {
         }
 
         public void Run() {
-            /*
-            _win = new Client_WinForm(this);
-            _wpf = new Client_WPFForm(this);
-            */
-
-            //rename to "_win"
-            _cWin = new WinClient();
+            _win = new WinClient();
 
             //Thread thread = new Thread(() => ProcessServerResponse());
             Thread thread = new Thread(() => ProcessServerPacket());
@@ -100,17 +106,7 @@ namespace Client {
             while (choice != "1" && choice != "2") 
                 choice = Console.ReadLine();
 
-            _cWin.NewWin(choice, this);
-
-            /*
-            //thread blocking statements
-            if (choice == "1")
-                _win.ShowDialog();
-            else if (choice == "2") {
-                _wpf.ShowDialog();
-                _isWPF = true;
-            }
-            */
+            _win.NewWin(choice, this);
 
             _tcpClient.Close();
         }
@@ -131,7 +127,7 @@ namespace Client {
                     }
                 }
 
-                _cWin.UpdateChat(serverMessage);
+                _win.UpdateChat(serverMessage);
                 //_win.UpdateChatWindow(serverMessage);
 
                 if (!result) _ = Console.ReadLine();
@@ -151,14 +147,19 @@ namespace Client {
                         case Packet.PacketType.EMPTY:
                             /* do nothing */
                             break;
+                        case Packet.PacketType.CLIENTNAME:
+                            ClientNamePacket namePacket = (ClientNamePacket)packet;
+
+                            _win.name = namePacket._name;
+                            break;
                         case Packet.PacketType.CHATMESSAGE:
                             ChatMessagePacket chatPacket = (ChatMessagePacket)packet;
-                            _cWin.UpdateChat(chatPacket._message);
+                            _win.UpdateChat(chatPacket._message);
 
                             break;
                         case Packet.PacketType.PRIVATEMESSAGE:
                             PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
-                            _cWin.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
+                            _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
 
                             break;
                     }
@@ -181,16 +182,15 @@ namespace Client {
             return packet;
         }
 
-        public bool SendPacket(string message) {
+        public bool SendPacket(Packet packet) {
             bool result = false;
             //if (_writer.BaseStream.CanSeek) {
             if (_writer != null) {
                 //1 create obj
-                ChatMessagePacket chatPacket = new ChatMessagePacket(message);
                 MemoryStream memStream = new MemoryStream();
 
                 //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, chatPacket);
+                _formatter.Serialize(memStream, packet);
 
                 //3 get byte array
                 byte[] buffer = memStream.GetBuffer();
@@ -207,6 +207,10 @@ namespace Client {
                 result = true;
             }
             return result;
+        }
+
+        public Packet PrepPacket(string message) {
+            return new Packet();
         }
     }
 }
