@@ -51,7 +51,7 @@ namespace Client {
         }
 
         private void SubmitButton_Click(object sender, EventArgs e) {
-            if (_client.SendPacket(new ChatMessagePacket(InputField.Text))) {
+            if (_client.TcpSendPacket(new ChatMessagePacket(InputField.Text))) {
                 InputField.Clear();
                 InputField.Focus();
             }
@@ -59,7 +59,7 @@ namespace Client {
 
         private void ChangeName_Button_Click(object sender, EventArgs e) {
             if(ChangeName_textbox.TextLength > 0) {
-                if (_client.SendPacket(new ClientNamePacket(ChangeName_textbox.Text))) {
+                if (_client.TcpSendPacket(new ClientNamePacket(ChangeName_textbox.Text))) {
                     ChangeName_textbox.Clear();
                     InputField.Focus();
                 }

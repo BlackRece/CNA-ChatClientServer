@@ -6,20 +6,23 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Server {
     class Server {
-
         TcpListener _tcpListener;
+        UdpClient _udpListener;
 
         ConcurrentDictionary<int, Client> _clients;
         int _maxClients = 4;
 
         public Server(string ipAddress, int port) {
             _tcpListener = new TcpListener(IPAddress.Parse(ipAddress), port);
+            _udpListener = new UdpClient(port);
+            _udpListener.Connect(IPAddress.Parse(ipAddress), port);
         }
 
         public void Start() {
@@ -27,6 +30,7 @@ namespace Server {
             _clients = new ConcurrentDictionary<int, Client>();
 
             _tcpListener.Start();
+            
             Console.WriteLine("Starting server...");
 
             while (true) {
@@ -34,20 +38,24 @@ namespace Server {
                 clientIndex++;
 
                 Client newClient = new Client(_tcpListener.AcceptSocket());
-                Thread thread;
+                Thread tcpThread = null, udpThread = null;
 
                 if (_clients.Count >= _maxClients) {
                     Console.WriteLine("Too many clients!");
 
-                    thread = new Thread(() => { RejectClient(newClient); });
+                    //tcpThread = new Thread(() => { TcpRejectClient(newClient); });
+                    udpThread = new Thread(() => { UdpRejectClient(newClient); });
                 } else {
+                    newClient._endPoint = (IPEndPoint)_udpListener.Client.RemoteEndPoint;
                     _clients.TryAdd(index, newClient);
 
                     //thread = new Thread(() => { ClientMethod(newClient); });
-                    thread = new Thread(() => { ClientMethod(index); });
+                    //tcpThread = new Thread(() => { TcpClientMethod(index); });
+                    udpThread = new Thread(() => { UdpListen(); });
                 }
 
-                thread.Start();
+                if(tcpThread != null) tcpThread.Start();
+                if(udpThread != null) udpThread.Start();
             }
         }
 
@@ -55,7 +63,7 @@ namespace Server {
             _tcpListener.Stop();
         }
 
-        void ClientMethod(int index) {
+        void TcpClientMethod(int index) {
             Console.WriteLine("Socket opened. (" + _tcpListener.ToString() + ")");
 
             Packet receivedPacket;
@@ -64,7 +72,7 @@ namespace Server {
 
             try {
                 while ((receivedPacket = client.Read()) != null) {
-                    Console.Write("Receieved: ");
+                    Console.Write("TCP Receieved: ");
 
                     // collect user names
                     foreach (KeyValuePair<int, Client> c in _clients)
@@ -114,6 +122,13 @@ namespace Server {
                             RespondToAll(new ChatMessagePacket(namePacket._message), client);
 
                             break;
+
+                        case Packet.PacketType.LOGIN:
+                            LoginPacket loginPacket = (LoginPacket)receivedPacket;
+                            client._endPoint = loginPacket._endPoint;
+
+                            RespondToAll(new ChatMessagePacket("User [" + client._name + "] just logged in."), client);
+                            break;
                         case Packet.PacketType.ERROR:
                             //should be for other things, in another place
                             Console.WriteLine("ERROR");
@@ -135,7 +150,7 @@ namespace Server {
             _clients.TryRemove(index, out client);
         }
 
-        void RejectClient(Client client) {
+        void TcpRejectClient(Client client) {
             Console.WriteLine("Socket to be refused: " + client._address + ":" + client._port);
 
             client.Send(new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."));
@@ -173,6 +188,93 @@ namespace Server {
                     pair.Value.Send(privPacket);
                 } 
             }
+        }
+
+        Packet UdpGetPacket(byte[] buffer) {
+            BinaryFormatter _formatter = new BinaryFormatter();
+            MemoryStream memStream = new MemoryStream(buffer);
+            return _formatter.Deserialize(memStream) as Packet;
+        }
+
+        void UdpListen() {
+            try {
+                IPEndPoint endPoint = (IPEndPoint)_udpListener.Client.LocalEndPoint;
+
+                while (true) {
+                    byte[] buffer = _udpListener.Receive(ref endPoint);
+                    Packet packet = UdpGetPacket(buffer);
+
+                    foreach (Client c in _clients.Values) {
+                        if (endPoint.ToString() == c._endPoint.ToString()) {
+                            Console.Write("UDP Receieved: ");
+
+                            switch (packet._packetType) {
+                                case Packet.PacketType.EMPTY:
+                                    /* do nothing */
+                                    break;
+                                case Packet.PacketType.CHATMESSAGE:
+                                    UdpSendToAll((ChatMessagePacket)packet);
+                                    break;
+                                case Packet.PacketType.PRIVATEMESSAGE:
+                                    break;
+                                case Packet.PacketType.SERVERMESSAGE:
+                                    break;
+                                case Packet.PacketType.CLIENTNAME:
+                                    break;
+                                case Packet.PacketType.LOGIN:
+                                    LoginPacket logPacket = (LoginPacket)packet;
+
+                                    Console.WriteLine(
+                                        "Connection received. ID: " + c._name +
+                                        "\nIP: " + logPacket._endPoint.Address.ToString() +
+                                        "\nPort: " + logPacket._endPoint.Port.ToString()
+                                    );
+                                    UdpSendToAll(new ChatMessagePacket(
+                                        "Client [" + c._name + "] has joined."
+                                    ));
+                                    break;
+                                case Packet.PacketType.USERLIST:
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+            } catch (SocketException e) {
+                Console.WriteLine("Server UDP Read Method Exception: " + e.Message);
+            }
+        }
+
+        void UdpRejectClient(Client client) {
+            Console.WriteLine("Socket to be refused: " + client._address + ":" + client._port);
+
+            UdpSendPacket(
+                new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."),
+                (IPEndPoint)_udpListener.Client.RemoteEndPoint
+            );
+
+
+            //client.Send(new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."));
+
+            client.Close();
+        }
+
+        void UdpSendToAll(Packet packet) {
+            foreach (Client c in _clients.Values) {
+                UdpSendPacket(packet, c._endPoint);
+            }
+        }
+
+        void UdpSendPacket(Packet packet, IPEndPoint endPoint) {
+            MemoryStream memStream = new MemoryStream();
+            
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(memStream, packet);
+            
+            byte[] buffer = memStream.GetBuffer();
+
+            _udpListener.Send(buffer, buffer.Length, endPoint);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 
 namespace Packets {
     [Serializable]
@@ -10,6 +11,7 @@ namespace Packets {
             PRIVATEMESSAGE,
             SERVERMESSAGE,
             CLIENTNAME,
+            LOGIN,
             USERLIST
         }
 
@@ -83,6 +85,17 @@ namespace Packets {
 
         public UserListPacket(string[] users) {
             _users = users;
+        }
+    }
+
+    [Serializable]
+    public class LoginPacket : Packet {
+        public IPEndPoint _endPoint;
+
+        public LoginPacket(IPEndPoint endPoint) {
+            _endPoint = endPoint;
+
+            _packetType = PacketType.LOGIN;
         }
     }
 }

@@ -14,12 +14,12 @@ namespace Server {
         Socket _socket;
         public string _name;
 
-        IPEndPoint _ipEndPoint;
+        public IPEndPoint _endPoint;
         public string _address {
-            get { return _ipEndPoint.Address.ToString(); }
+            get { return _endPoint.Address.ToString(); }
         }
         public int _port {
-            get { return _ipEndPoint.Port; }
+            get { return _endPoint.Port; }
         }
 
         NetworkStream _stream;
@@ -43,8 +43,12 @@ namespace Server {
             _reader = new BinaryReader(_stream);
             _writer = new BinaryWriter(_stream);
 
-            _ipEndPoint = _socket.RemoteEndPoint as IPEndPoint;
-            _name = _port.ToString();
+            //_endPoint = _socket.RemoteEndPoint as IPEndPoint;
+            //_name = _port.ToString();
+        }
+
+        ~Client() {
+            Close();
         }
 
         public void Close() {
