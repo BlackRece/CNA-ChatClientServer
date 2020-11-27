@@ -40,9 +40,10 @@ namespace Client {
         }
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e) {
-            _client.SendPacket(InputField.Text);
-            InputField.Clear();
-            InputField.Focus();
+            if (_client.SendPacket(InputField.Text)) {
+                InputField.Clear();
+                InputField.Focus();
+            }
         }
     }
 }

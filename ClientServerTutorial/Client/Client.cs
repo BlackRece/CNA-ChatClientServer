@@ -143,8 +143,8 @@ namespace Client {
             Packet packet = new Packet();
 
             while (_tcpClient.Connected) {
-                //if(_reader != null) {
-                if(_reader.BaseStream.CanSeek) { 
+                if(_reader != null) {
+                //if(_reader.BaseStream.CanSeek) { 
                     packet = ReadPacket();
 
                     switch (packet._packetType) {
@@ -183,12 +183,14 @@ namespace Client {
 
         public bool SendPacket(string message) {
             bool result = false;
-            if (_writer.BaseStream.CanSeek) {
+            //if (_writer.BaseStream.CanSeek) {
+            if (_writer != null) {
                 //1 create obj
+                ChatMessagePacket chatPacket = new ChatMessagePacket(message);
                 MemoryStream memStream = new MemoryStream();
 
                 //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, message);
+                _formatter.Serialize(memStream, chatPacket);
 
                 //3 get byte array
                 byte[] buffer = memStream.GetBuffer();

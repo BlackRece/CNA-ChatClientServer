@@ -157,7 +157,7 @@ namespace Server {
             Client[] allClients = _clients.ToArray();
 
             for (int i = 0; i < _clients.Count; i++)
-                if (source != allClients[i])
+                //if (source != allClients[i])
                     allClients[i].Send(chatPacket);
 
         }
