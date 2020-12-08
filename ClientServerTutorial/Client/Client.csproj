@@ -81,6 +81,10 @@
       <Project>{f14ce456-1972-4b78-b064-7a3b14d1a62a}</Project>
       <Name>Packets</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Security\Security.csproj">
+      <Project>{9B39F912-00F0-4683-9476-739B4ACCFB80}</Project>
+      <Name>Security</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

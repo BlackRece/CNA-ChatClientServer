@@ -70,9 +70,12 @@ namespace Server {
 
         public void Close() {
             _stream.Close();
-            _reader.Close();
-            _writer.Close();
+            if(_reader != null) _reader.Close();
+            if(_writer != null) _writer.Close();
             _socket.Close();
+
+            _reader = null;
+            _writer = null;
         }
 
         /*
@@ -91,7 +94,12 @@ namespace Server {
         public Packet TcpRead() {
             lock (_readLock) {
                 int numberOfBytes;
-                Packet packet = new Packet();
+                Packet packet = null;
+
+                if (_reader == null)
+                    return packet;
+
+                //packet = new Packet();
 
                 //1 check reader and store returned val
                 if ((numberOfBytes = _reader.ReadInt32()) != -1) {

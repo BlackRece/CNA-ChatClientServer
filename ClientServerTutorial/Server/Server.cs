@@ -180,6 +180,14 @@ namespace Server {
                             ErrorMessagePacket errPacket = (ErrorMessagePacket)receivedPacket;
                             client.TcpSend(errPacket);
                             break;
+                        case Packet.PacketType.ENDSESSION:
+                            Console.Write("ENDING TCP SESSION: " + client._name);
+
+                            // signal to client to close connections
+                            // and end while loop
+                            client.Close();
+
+                            break;
                         default:
                             break;
                     }
@@ -288,6 +296,10 @@ namespace Server {
                                     break;
                                 case Packet.PacketType.USERLIST:
                                     Console.WriteLine("LIST");
+                                    break;
+                                case Packet.PacketType.ENDSESSION:
+                                    Console.WriteLine("ENDSESSION: " + c._name);
+                                    c.Close();
                                     break;
                                 default:
                                     break;

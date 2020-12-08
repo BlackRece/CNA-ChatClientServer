@@ -1,4 +1,5 @@
 ﻿using Packets;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,10 +56,6 @@ namespace Client {
 
         }
 
-        // lock objects
-        private object _encrypt;
-        private object _decrypt;
-
         TcpClient _tcpClient;
         UdpClient _udpClient;
 
@@ -72,76 +69,41 @@ namespace Client {
 
         public string _nick;
 
-        RSACryptoServiceProvider _RSAProvider;
-        private RSAParameters _publicKey;
-        private RSAParameters _privateKey;
-        private RSAParameters _serverkey;
+        private Secure _crypt;
 
         public Client() {
-            _RSAProvider = new RSACryptoServiceProvider(2048);
-            _publicKey = _RSAProvider.ExportParameters(false);
-            _privateKey = _RSAProvider.ExportParameters(true);
-
-            _encrypt = new object();
-            _decrypt = new object();
+            _crypt = new Secure();
         }
 
         public void Close() {
+            // close local connections
             _tcpClient.Close();
             _udpClient.Close();
-        }
-
-        private byte[] Decrypt(byte[] data) {
-            lock (_decrypt) {
-                _RSAProvider.ImportParameters(_privateKey);
-                return _RSAProvider.Decrypt(data, true);
-            }
-        }
-
-        private string DecryptString(byte[] message) {
-            byte[] data = Decrypt(message);
-            string result = Encoding.UTF8.GetString(data);
-            return result;
-        }
-        private byte[] Encrypt(byte[] data) {
-            lock (_encrypt) {
-                _RSAProvider.ImportParameters(_serverkey);
-                return _RSAProvider.Encrypt(data, true);
-            }
-        }
-
-        private byte[] EncryptString(string message) {
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            return Encrypt(data);
         }
 
         public Packet TcpReadPacket() {
             int numberOfBytes;
             Packet packet = new Packet();
 
-            // check reader and store return val
-            if ((numberOfBytes = _reader.ReadInt32()) > 0) {
-                byte[] buffer = _reader.ReadBytes(numberOfBytes);
-                MemoryStream memStream = new MemoryStream(buffer);
-                packet = _formatter.Deserialize(memStream) as Packet;
+            try {
+                // check reader and store return val
+                if ((numberOfBytes = _reader.ReadInt32()) > 0) {
+                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
+                    MemoryStream memStream = new MemoryStream(buffer);
+                    packet = _formatter.Deserialize(memStream) as Packet;
+                }
+            } catch (Exception e) {
+                Console.WriteLine("Error: " + e.Message);
             }
 
             return packet;
         }
                
         public void Run() {
+            // create window container
             _win = new WinClient();
 
-            Thread tcpThread = new Thread(() => TcpProcessServerPacket());
-            tcpThread.Start();
-
-            Thread udpThread = new Thread(() => UdpProcessServerPacket());
-            udpThread.Start();
-
-            // login to server
-            TcpLogin();
-
-            // create window
+            // select window type
             Console.WriteLine(
                 "Select client type:\n" +
                 "1:\tWinForm Client\n" +
@@ -152,8 +114,21 @@ namespace Client {
             while (choice != "1" && choice != "2")
                 choice = Console.ReadLine();
 
-            _win.NewWin(choice, this);
+            // start network worker threads
+            Thread tcpThread = new Thread(() => TcpProcessServerPacket());
+            tcpThread.Start();
 
+            Thread udpThread = new Thread(() => UdpProcessServerPacket());
+            udpThread.Start();
+
+            // login to server
+            TcpLogin();
+
+            // launch selected window
+            _win.NewWin(choice, this);
+            // this blocks the thread until window is closed
+
+            // clean up connections before exit
             Close();
         }
 
@@ -181,7 +156,7 @@ namespace Client {
             Console.WriteLine("Logging in to server...");
 
             LoginPacket logPacket = new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint);
-            logPacket._clientKey = _publicKey;
+            logPacket._clientKey = _crypt.PublicKey;
             TcpSendPacket(logPacket);
         }
 
@@ -190,7 +165,6 @@ namespace Client {
 
             while (_tcpClient.Connected) {
                 if(_reader != null) {
-                //if(_reader.BaseStream.CanSeek) { 
                     packet = TcpReadPacket();
 
                     switch (packet._packetType) {
@@ -215,16 +189,21 @@ namespace Client {
                             Console.WriteLine("Logged in to server.");
 
                             LoginPacket loginPacket = (LoginPacket)packet;
-                            _serverkey = loginPacket._serverKey;
+                            _crypt.ExternalKey = loginPacket._serverKey;
 
                             break;
                         case Packet.PacketType.SECUREMESSAGE:
                             SecurePacket safePacket = (SecurePacket)packet;
                             _win.UpdateChat(
                                 "Secure Message Received [" + safePacket._author + "]: " +
-                                DecryptString(safePacket._data)
+                                _crypt.DecryptString(safePacket._data)
                                 );
 
+                            break;
+                        case Packet.PacketType.ENDSESSION:
+                            Console.WriteLine("Disconnecting from server.");
+
+                            _tcpClient.Close();
                             break;
                     }
                 }
@@ -259,7 +238,7 @@ namespace Client {
         }
 
         public bool TcpSendSecurePacket(string message) {
-            SecurePacket securePacket = new SecurePacket(_nick, EncryptString(message));
+            SecurePacket securePacket = new SecurePacket(_nick, _crypt.EncryptString(message));
 
             return TcpSendPacket(securePacket);
         }
@@ -301,6 +280,11 @@ namespace Client {
                             );
                             break;
                         case Packet.PacketType.USERLIST:
+                            break;
+                        case Packet.PacketType.ENDSESSION:
+                            Console.WriteLine("Disconnecting from server.");
+
+                            _udpClient.Close();
                             break;
                     }
                 }

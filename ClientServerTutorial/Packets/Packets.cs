@@ -14,7 +14,8 @@ namespace Packets {
             CLIENTNAME,
             LOGIN,
             USERLIST,
-            SECUREMESSAGE
+            SECUREMESSAGE,
+            ENDSESSION
         }
 
         public PacketType _packetType { get; protected set; }
@@ -111,6 +112,13 @@ namespace Packets {
             _data = data;
 
             _packetType = PacketType.SECUREMESSAGE;
+        }
+    }
+
+    [Serializable]
+    public class EndSessionPacket : Packet {
+        public EndSessionPacket() {
+            _packetType = PacketType.ENDSESSION;
         }
     }
 }

@@ -27,9 +27,9 @@
             this.InputField = new System.Windows.Forms.TextBox();
             this.SubmitButton = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.NickName_label = new System.Windows.Forms.Label();
             this.ChangeName_Button = new System.Windows.Forms.Button();
             this.ChangeName_textbox = new System.Windows.Forms.TextBox();
-            this.NickName_label = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -70,6 +70,16 @@
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             // 
+            // NickName_label
+            // 
+            this.NickName_label.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.NickName_label.AutoSize = true;
+            this.NickName_label.Location = new System.Drawing.Point(70, 12);
+            this.NickName_label.Name = "NickName_label";
+            this.NickName_label.Size = new System.Drawing.Size(53, 13);
+            this.NickName_label.TabIndex = 9;
+            this.NickName_label.Text = "nickname";
+            // 
             // ChangeName_Button
             // 
             this.ChangeName_Button.Location = new System.Drawing.Point(282, 7);
@@ -87,16 +97,6 @@
             this.ChangeName_textbox.Size = new System.Drawing.Size(147, 20);
             this.ChangeName_textbox.TabIndex = 7;
             // 
-            // NickName_label
-            // 
-            this.NickName_label.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.NickName_label.AutoSize = true;
-            this.NickName_label.Location = new System.Drawing.Point(70, 12);
-            this.NickName_label.Name = "NickName_label";
-            this.NickName_label.Size = new System.Drawing.Size(53, 13);
-            this.NickName_label.TabIndex = 9;
-            this.NickName_label.Text = "nickname";
-            // 
             // Client_WinForm
             // 
             this.AcceptButton = this.SubmitButton;
@@ -109,6 +109,7 @@
             this.Controls.Add(this.MessageWindow);
             this.Name = "Client_WinForm";
             this.Text = "Client_WinForm";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Client_WinForm_FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);

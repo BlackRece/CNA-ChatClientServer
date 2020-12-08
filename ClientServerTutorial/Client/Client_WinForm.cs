@@ -75,5 +75,11 @@ namespace Client {
             MessageWindow.SelectionStart = MessageWindow.Text.Length;
             MessageWindow.ScrollToCaret();
         }
+
+        private void Client_WinForm_FormClosing(object sender, FormClosingEventArgs e) {
+            // notify server of closing
+            _client.TcpSendPacket(new EndSessionPacket());
+
+        }
     }
 }
