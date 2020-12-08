@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,7 +54,11 @@ namespace Client {
             }
 
         }
-        
+
+        // lock objects
+        private object _encrypt;
+        private object _decrypt;
+
         TcpClient _tcpClient;
         UdpClient _udpClient;
 
@@ -67,17 +72,50 @@ namespace Client {
 
         public string _nick;
 
+        RSACryptoServiceProvider _RSAProvider;
+        private RSAParameters _publicKey;
+        private RSAParameters _privateKey;
+        private RSAParameters _serverkey;
+
+        public Client() {
+            _RSAProvider = new RSACryptoServiceProvider(2048);
+            _publicKey = _RSAProvider.ExportParameters(false);
+            _privateKey = _RSAProvider.ExportParameters(true);
+
+            _encrypt = new object();
+            _decrypt = new object();
+        }
 
         public void Close() {
             _tcpClient.Close();
             _udpClient.Close();
         }
 
-        public void Login() {
-            TcpSendPacket(new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint));
+        private byte[] Decrypt(byte[] data) {
+            lock (_decrypt) {
+                _RSAProvider.ImportParameters(_privateKey);
+                return _RSAProvider.Decrypt(data, true);
+            }
         }
 
-        public Packet ReadPacket() {
+        private string DecryptString(byte[] message) {
+            byte[] data = Decrypt(message);
+            string result = Encoding.UTF8.GetString(data);
+            return result;
+        }
+        private byte[] Encrypt(byte[] data) {
+            lock (_encrypt) {
+                _RSAProvider.ImportParameters(_serverkey);
+                return _RSAProvider.Encrypt(data, true);
+            }
+        }
+
+        private byte[] EncryptString(string message) {
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            return Encrypt(data);
+        }
+
+        public Packet TcpReadPacket() {
             int numberOfBytes;
             Packet packet = new Packet();
 
@@ -94,15 +132,16 @@ namespace Client {
         public void Run() {
             _win = new WinClient();
 
-            //Thread thread = new Thread(() => ProcessServerResponse());
             Thread tcpThread = new Thread(() => TcpProcessServerPacket());
             tcpThread.Start();
 
             Thread udpThread = new Thread(() => UdpProcessServerPacket());
             udpThread.Start();
 
-            Login();
+            // login to server
+            TcpLogin();
 
+            // create window
             Console.WriteLine(
                 "Select client type:\n" +
                 "1:\tWinForm Client\n" +
@@ -131,13 +170,19 @@ namespace Client {
                 _reader = new BinaryReader(_stream);
                 _writer = new BinaryWriter(_stream);
 
-                //TcpSendPacket(new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint));
-
                 return true;
             } catch (Exception e) {
                 Console.WriteLine("Exception: " + e.Message);
                 return false;
             }
+        }
+
+        public void TcpLogin() {
+            Console.WriteLine("Logging in to server...");
+
+            LoginPacket logPacket = new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint);
+            logPacket._clientKey = _publicKey;
+            TcpSendPacket(logPacket);
         }
 
         private void TcpProcessServerPacket() {
@@ -146,7 +191,7 @@ namespace Client {
             while (_tcpClient.Connected) {
                 if(_reader != null) {
                 //if(_reader.BaseStream.CanSeek) { 
-                    packet = ReadPacket();
+                    packet = TcpReadPacket();
 
                     switch (packet._packetType) {
                         case Packet.PacketType.EMPTY:
@@ -165,6 +210,20 @@ namespace Client {
                         case Packet.PacketType.PRIVATEMESSAGE:
                             PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
                             _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
+                            break;
+                        case Packet.PacketType.LOGIN:
+                            Console.WriteLine("Logged in to server.");
+
+                            LoginPacket loginPacket = (LoginPacket)packet;
+                            _serverkey = loginPacket._serverKey;
+
+                            break;
+                        case Packet.PacketType.SECUREMESSAGE:
+                            SecurePacket safePacket = (SecurePacket)packet;
+                            _win.UpdateChat(
+                                "Secure Message Received [" + safePacket._author + "]: " +
+                                DecryptString(safePacket._data)
+                                );
 
                             break;
                     }
@@ -197,6 +256,12 @@ namespace Client {
                 result = true;
             }
             return result;
+        }
+
+        public bool TcpSendSecurePacket(string message) {
+            SecurePacket securePacket = new SecurePacket(_nick, EncryptString(message));
+
+            return TcpSendPacket(securePacket);
         }
 
         private void UdpProcessServerPacket() {

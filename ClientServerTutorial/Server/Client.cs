@@ -1,4 +1,5 @@
 ﻿using Packets;
+using Security;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,7 +34,22 @@ namespace Server {
         object _readLock;
         object _writeLock;
 
+        private Secure _crypt;
+        /*
+        RSACryptoServiceProvider _RSAProvider;
+        private RSAParameters _publicKey;
+        private RSAParameters _privateKey;
+        private RSAParameters _clientKey;
+        */
+
         public Client(Socket socket) {
+            /*
+            _RSAProvider = new RSACryptoServiceProvider(2048);
+            _publicKey = _RSAProvider.ExportParameters(false);
+            _privateKey = _RSAProvider.ExportParameters(true);
+            */
+            _crypt = new Secure();
+
             _readLock = new object();
             _writeLock = new object();
 
@@ -58,7 +75,20 @@ namespace Server {
             _socket.Close();
         }
 
-        public Packet Read() {
+        /*
+        private byte[] Decrypt(byte[] data) {
+
+        }
+
+        private string DecryptString(byte[] message) { }
+        private byte[] Encrypt(byte[] data) {
+
+        }
+
+        private byte[] EncryptString(string message) { }
+        */
+
+        public Packet TcpRead() {
             lock (_readLock) {
                 int numberOfBytes;
                 Packet packet = new Packet();
@@ -78,13 +108,13 @@ namespace Server {
             }
         }
 
-        public void Send(Packet message) {
+        public void TcpSend(Packet packet) {
             lock(_writeLock) {
                 //1 create obj
                 MemoryStream memStream = new MemoryStream();
 
                 //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, message);
+                _formatter.Serialize(memStream, packet);
 
                 //3 get byte array
                 byte[] buffer = memStream.GetBuffer();
@@ -98,6 +128,29 @@ namespace Server {
                 //6 flush
                 _writer.Flush();
             }
+        }
+
+        public void UdpSend(Packet packet, ref UdpClient udpClient) {
+            MemoryStream memStream = new MemoryStream();
+
+            _formatter.Serialize(memStream, packet);
+
+            byte[] buffer = memStream.GetBuffer();
+
+            udpClient.Send(buffer, buffer.Length, _endPoint);
+        }
+
+        public void UpdateRSA(ref LoginPacket logPacket) {
+            _crypt.ExternalKey = logPacket._clientKey;
+            logPacket._serverKey = _crypt.PublicKey;
+        }
+
+        public string GetSecureMessage(SecurePacket safePacket) {
+            return _crypt.DecryptString(safePacket._data);
+        }
+
+        public byte[] SetSecureMessage(string message) {
+            return _crypt.EncryptString(message);
         }
     }
 }

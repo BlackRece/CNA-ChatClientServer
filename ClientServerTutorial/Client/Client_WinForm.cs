@@ -52,7 +52,8 @@ namespace Client {
 
         private void SubmitButton_Click(object sender, EventArgs e) {
             //if (_client.TcpSendPacket(new ChatMessagePacket(InputField.Text))) {
-            if (_client.UdpSendPacket(new ChatMessagePacket(InputField.Text))) {
+            //if (_client.UdpSendPacket(new ChatMessagePacket(InputField.Text))) {
+            if (_client.TcpSendSecurePacket(InputField.Text)) {
                 InputField.Clear();
                 InputField.Focus();
             }

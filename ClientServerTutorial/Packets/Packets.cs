@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace Packets {
     [Serializable]
@@ -12,7 +13,8 @@ namespace Packets {
             SERVERMESSAGE,
             CLIENTNAME,
             LOGIN,
-            USERLIST
+            USERLIST,
+            SECUREMESSAGE
         }
 
         public PacketType _packetType { get; protected set; }
@@ -91,11 +93,24 @@ namespace Packets {
     [Serializable]
     public class LoginPacket : Packet {
         public IPEndPoint _endPoint;
+        public RSAParameters _clientKey;
+        public RSAParameters _serverKey;
 
         public LoginPacket(IPEndPoint endPoint) {
             _endPoint = endPoint;
 
             _packetType = PacketType.LOGIN;
+        }
+    }
+
+    [Serializable]
+    public class SecurePacket : Packet {
+        public byte[] _data;
+        public string _author;
+        public SecurePacket(string _author, byte[] data) {
+            _data = data;
+
+            _packetType = PacketType.SECUREMESSAGE;
         }
     }
 }

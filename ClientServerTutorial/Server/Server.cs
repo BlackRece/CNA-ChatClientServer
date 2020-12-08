@@ -15,6 +15,23 @@ namespace Server {
     class Server {
         TcpListener _tcpListener;
         UdpClient _udpListener;
+        /*
+         * Ideal TCP/UDP Usage:
+         * TCP:
+         * Initial connection to client(and gameClient?)
+         * error messages
+         * server messages
+         * login packets
+         * username list
+         * name change packets
+         * chat messages
+         * private messages
+         * (file transfer)
+         * 
+         * UDP:
+         * game update packets
+         * (streams)
+         */
 
         ConcurrentDictionary<int, Client> _clients;
         int _maxClients = 4;
@@ -72,7 +89,7 @@ namespace Server {
             List<string> usernames = new List<string>();
 
             try {
-                while ((receivedPacket = client.Read()) != null) {
+                while ((receivedPacket = client.TcpRead()) != null) {
                     Console.Write("TCP Receieved: ");
 
                     // collect user names
@@ -89,13 +106,13 @@ namespace Server {
                         case Packet.PacketType.CHATMESSAGE:
                             Console.WriteLine("CHAT");
 
-                            RespondToAll((ChatMessagePacket)receivedPacket, client);
+                            TcpRespondToAll((ChatMessagePacket)receivedPacket, client);
 
                             break;
                         case Packet.PacketType.PRIVATEMESSAGE:
                             Console.WriteLine("PRIVATE");
 
-                            RespondTo((PrivateMessagePacket)receivedPacket, client);
+                            TcpRespondTo((PrivateMessagePacket)receivedPacket, client);
 
                             break;
                         case Packet.PacketType.SERVERMESSAGE:
@@ -103,7 +120,7 @@ namespace Server {
 
                             ServerMessagePacket servPacket = (ServerMessagePacket)receivedPacket;
                             servPacket._messageRecv = GetReturnMessage(servPacket._messageSent);
-                            client.Send(servPacket);
+                            client.TcpSend(servPacket);
 
                             break;
                         case Packet.PacketType.CLIENTNAME:
@@ -117,25 +134,51 @@ namespace Server {
                             client._name = namePacket._name;
 
                             // update client
-                            client.Send(namePacket);
+                            client.TcpSend(namePacket);
 
                             // notify all clients
-                            RespondToAll(new ChatMessagePacket(namePacket._message), client);
+                            TcpRespondToAll(new ChatMessagePacket(namePacket._message), client);
 
                             break;
 
                         case Packet.PacketType.LOGIN:
+                            Console.WriteLine("LOGIN");
+
                             LoginPacket loginPacket = (LoginPacket)receivedPacket;
                             client._endPoint = loginPacket._endPoint;
+                            client.UpdateRSA(ref loginPacket);
 
-                            //RespondToAll(new ChatMessagePacket("User [" + client._name + "] just logged in."), client);
+                            //now that the login packet has been updated with both the
+                            //server AND client public keys, do what?
+                            client.TcpSend(loginPacket);
+                            
                             break;
+                        case Packet.PacketType.SECUREMESSAGE:
+                            Console.WriteLine("SECURE");
+
+                            // receive packet
+                            SecurePacket safePacket = (SecurePacket)receivedPacket;
+
+                            // decrypt packet
+                            string message = client.GetSecureMessage(safePacket);
+
+                            // process packet
+                            /* do summut */
+
+                            // encrypt packet
+                            safePacket._data = client.SetSecureMessage(message);
+
+                            // transmit packet
+                            TcpSecureRespondToAll(safePacket);
+
+                            break;
+
                         case Packet.PacketType.ERROR:
                             //should be for other things, in another place
                             Console.WriteLine("ERROR");
 
                             ErrorMessagePacket errPacket = (ErrorMessagePacket)receivedPacket;
-                            client.Send(errPacket);
+                            client.TcpSend(errPacket);
                             break;
                         default:
                             break;
@@ -154,7 +197,7 @@ namespace Server {
         void TcpRejectClient(Client client) {
             Console.WriteLine("Socket to be refused: " + client._address + ":" + client._port);
 
-            client.Send(new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."));
+            client.TcpSend(new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."));
 
             client.Close();
         }
@@ -168,25 +211,31 @@ namespace Server {
             }
         }
 
-        void RespondToAll(ChatMessagePacket chatPacket, Client source) {
+        void TcpRespondToAll(ChatMessagePacket chatPacket, Client source) {
             string msg = source._name + ": " + chatPacket._message;
 
             foreach(KeyValuePair<int, Client> pair in _clients) { 
                 if(source != pair.Value) {
                     chatPacket._message = source._name + ": " + chatPacket._message;
-                    pair.Value.Send(chatPacket);
+                    pair.Value.TcpSend(chatPacket);
                 } else {
                     chatPacket._message = "me: " + chatPacket._message;
-                    pair.Value.Send(chatPacket);
+                    pair.Value.TcpSend(chatPacket);
                 }
             }
         }
 
-        void RespondTo(PrivateMessagePacket privPacket, Client source) {
+        void TcpSecureRespondToAll(SecurePacket secureChatMsg) {
+            foreach (KeyValuePair<int, Client> pair in _clients) {
+                    pair.Value.TcpSend(secureChatMsg);
+            }
+        }
+
+        void TcpRespondTo(PrivateMessagePacket privPacket, Client source) {
             foreach (KeyValuePair<int, Client> pair in _clients) {
                 if (pair.Value._name == privPacket._target) {
                     privPacket._message = source._name + ": " + privPacket._message;
-                    pair.Value.Send(privPacket);
+                    pair.Value.TcpSend(privPacket);
                 } 
             }
         }
@@ -236,11 +285,6 @@ namespace Server {
                                         "\nIP: " + logPacket._endPoint.Address.ToString() +
                                         "\nPort: " + logPacket._endPoint.Port.ToString()
                                     );
-                                    /*
-                                    UdpSendToAll(new ChatMessagePacket(
-                                        "Client [" + c._name + "] has joined."
-                                    ));
-                                    */
                                     break;
                                 case Packet.PacketType.USERLIST:
                                     Console.WriteLine("LIST");
@@ -259,29 +303,32 @@ namespace Server {
         void UdpRejectClient(Client client) {
             Console.WriteLine("Socket to be refused: " + client._address + ":" + client._port);
 
-            UdpSendPacket(
-                new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."),
-                (IPEndPoint)_udpListener.Client.RemoteEndPoint
+            client.UdpSend(
+                new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again later."),
+                ref _udpListener
             );
-
-
-            //client.Send(new ErrorMessagePacket("ERROR\nToo many clients connected. Please try again."));
 
             client.Close();
         }
 
         void UdpSendToAll(Packet packet) {
             foreach (Client c in _clients.Values) {
-                UdpSendPacket(packet, c._endPoint);
+                c.UdpSend(packet, ref _udpListener);
+            }
+        }
+
+        void UdpSecureRespondToAll(SecurePacket secureChatMsg) {
+            foreach (KeyValuePair<int, Client> pair in _clients) {
+                pair.Value.UdpSend(secureChatMsg, ref _udpListener);
             }
         }
 
         void UdpSendPacket(Packet packet, IPEndPoint endPoint) {
             MemoryStream memStream = new MemoryStream();
-            
+
             BinaryFormatter formatter = new BinaryFormatter();
             formatter.Serialize(memStream, packet);
-            
+
             byte[] buffer = memStream.GetBuffer();
 
             _udpListener.Send(buffer, buffer.Length, endPoint);
