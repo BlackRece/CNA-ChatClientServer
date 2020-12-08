@@ -74,7 +74,7 @@ namespace Client {
         }
 
         public void Login() {
-            UdpSendPacket(new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint));
+            TcpSendPacket(new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint));
         }
 
         public Packet ReadPacket() {
@@ -130,6 +130,8 @@ namespace Client {
 
                 _reader = new BinaryReader(_stream);
                 _writer = new BinaryWriter(_stream);
+
+                //TcpSendPacket(new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint));
 
                 return true;
             } catch (Exception e) {
@@ -211,12 +213,19 @@ namespace Client {
                         case Packet.PacketType.EMPTY:
                             break;
                         case Packet.PacketType.CHATMESSAGE:
+                            ChatMessagePacket chatPacket = (ChatMessagePacket)packet;
+                            _win.UpdateChat(chatPacket._message);
                             break;
                         case Packet.PacketType.PRIVATEMESSAGE:
+                            PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
+                            _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
                             break;
                         case Packet.PacketType.SERVERMESSAGE:
                             break;
                         case Packet.PacketType.CLIENTNAME:
+                            ClientNamePacket namePacket = (ClientNamePacket)packet;
+
+                            _win.name = namePacket._name;
                             break;
                         case Packet.PacketType.LOGIN:
                             LoginPacket logPacket = (LoginPacket)packet;
@@ -242,7 +251,7 @@ namespace Client {
         }
 
 
-        public void UdpSendPacket(Packet packet) {
+        public bool UdpSendPacket(Packet packet) {
             //1 create obj
             MemoryStream memStream = new MemoryStream();
 
@@ -253,7 +262,9 @@ namespace Client {
             byte[] buffer = memStream.GetBuffer();
 
             //4 send packet
-            _udpClient.Send(buffer, buffer.Length);
+            int result = _udpClient.Send(buffer, buffer.Length);
+
+            return result > 0;
         }
     }
 }

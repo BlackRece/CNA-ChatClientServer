@@ -22,7 +22,7 @@ namespace Server {
         public Server(string ipAddress, int port) {
             _tcpListener = new TcpListener(IPAddress.Parse(ipAddress), port);
             _udpListener = new UdpClient(port);
-            _udpListener.Connect(IPAddress.Parse(ipAddress), port);
+            //_udpListener.Connect(IPAddress.Parse(ipAddress), port);
         }
 
         public void Start() {
@@ -43,14 +43,15 @@ namespace Server {
                 if (_clients.Count >= _maxClients) {
                     Console.WriteLine("Too many clients!");
 
-                    //tcpThread = new Thread(() => { TcpRejectClient(newClient); });
+                    tcpThread = new Thread(() => { TcpRejectClient(newClient); });
                     udpThread = new Thread(() => { UdpRejectClient(newClient); });
                 } else {
-                    newClient._endPoint = (IPEndPoint)_udpListener.Client.RemoteEndPoint;
+                    //newClient._endPoint = (IPEndPoint)_udpListener.Client.RemoteEndPoint;
+                    //newClient._endPoint = (IPEndPoint)_udpListener.Client.LocalEndPoint;
                     _clients.TryAdd(index, newClient);
 
                     //thread = new Thread(() => { ClientMethod(newClient); });
-                    //tcpThread = new Thread(() => { TcpClientMethod(index); });
+                    tcpThread = new Thread(() => { TcpClientMethod(index); });
                     udpThread = new Thread(() => { UdpListen(); });
                 }
 
@@ -127,7 +128,7 @@ namespace Server {
                             LoginPacket loginPacket = (LoginPacket)receivedPacket;
                             client._endPoint = loginPacket._endPoint;
 
-                            RespondToAll(new ChatMessagePacket("User [" + client._name + "] just logged in."), client);
+                            //RespondToAll(new ChatMessagePacket("User [" + client._name + "] just logged in."), client);
                             break;
                         case Packet.PacketType.ERROR:
                             //should be for other things, in another place
@@ -198,7 +199,7 @@ namespace Server {
 
         void UdpListen() {
             try {
-                IPEndPoint endPoint = (IPEndPoint)_udpListener.Client.LocalEndPoint;
+                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
 
                 while (true) {
                     byte[] buffer = _udpListener.Receive(ref endPoint);
@@ -213,15 +214,21 @@ namespace Server {
                                     /* do nothing */
                                     break;
                                 case Packet.PacketType.CHATMESSAGE:
+                                    Console.WriteLine("CHAT");
                                     UdpSendToAll((ChatMessagePacket)packet);
                                     break;
                                 case Packet.PacketType.PRIVATEMESSAGE:
+                                    Console.WriteLine("PRIVATE");
                                     break;
                                 case Packet.PacketType.SERVERMESSAGE:
+                                    Console.WriteLine("SERVER");
                                     break;
                                 case Packet.PacketType.CLIENTNAME:
+                                    Console.WriteLine("NAME");
                                     break;
                                 case Packet.PacketType.LOGIN:
+                                    Console.WriteLine("LOGIN");
+
                                     LoginPacket logPacket = (LoginPacket)packet;
 
                                     Console.WriteLine(
@@ -229,11 +236,14 @@ namespace Server {
                                         "\nIP: " + logPacket._endPoint.Address.ToString() +
                                         "\nPort: " + logPacket._endPoint.Port.ToString()
                                     );
+                                    /*
                                     UdpSendToAll(new ChatMessagePacket(
                                         "Client [" + c._name + "] has joined."
                                     ));
+                                    */
                                     break;
                                 case Packet.PacketType.USERLIST:
+                                    Console.WriteLine("LIST");
                                     break;
                                 default:
                                     break;
