@@ -5,14 +5,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Client"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SizeToContent="WidthAndHeight" MinHeight="450" MinWidth="800">
     <Grid>
-        <Button Name="SubmitButton" Content="Submit" HorizontalAlignment="Left" Margin="707,389,0,0" VerticalAlignment="Top" Width="75"  Click="SubmitButton_Click"/>
-        <TextBox Name="MessageWindow" HorizontalAlignment="Left" Height="338" Margin="10,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="772"  IsReadOnly="True"/>
-        <TextBox Name="InputField" HorizontalAlignment="Left" Height="23" Margin="10,386,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="692" />
-        <Label Name="NickName" Content="Label" HorizontalAlignment="Left" Margin="10,353,0,0" VerticalAlignment="Top" Width="170" MouseDoubleClick="NickName_MouseDoubleClick"/>
-        <TextBox x:Name="ChangeName_textbox" HorizontalAlignment="Left" Height="23" Margin="185,353,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="ChangeName_button" Content="Button" HorizontalAlignment="Left" Margin="310,353,0,0" VerticalAlignment="Top" Width="75" Click="ChangeName_button_Click"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="140*"/>
+            <ColumnDefinition Width="260*" MinWidth="400"/>
+        </Grid.ColumnDefinitions>
+        <Button Name="SubmitButton" Content="Submit" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom"  Click="SubmitButton_Click" Grid.Column="1" MinHeight="20" MinWidth="90"/>
+        <TextBox Name="MessageWindow" Height="366" Margin="10,10,10,40" TextWrapping="Wrap" Text="Received Messages" Width="496"  IsReadOnly="True" Grid.Column="1"/>
+        <TextBox Name="InputField" HorizontalAlignment="Left" Height="20" Margin="10,0,0,10" TextWrapping="Wrap" Text="Sent Messages" VerticalAlignment="Bottom" MinHeight="20" VerticalContentAlignment="Center" Grid.Column="1" MinWidth="400" />
+        <Label Name="NickName" Margin="10,0,10,10" VerticalAlignment="Bottom" MouseDoubleClick="NickName_MouseDoubleClick" Height="20" Content="NickName" MinHeight="20" VerticalContentAlignment="Center" Padding="5,0" HorizontalContentAlignment="Right" MinWidth="70"/>
+        <TextBox x:Name="ChangeName_textbox" HorizontalAlignment="Left" Margin="10,0,0,40" TextWrapping="Wrap" Text="Change Name TextBox" VerticalAlignment="Bottom" MinHeight="20" MinWidth="160" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        <Button x:Name="ChangeName_button" Content="Change Name" HorizontalAlignment="Right" Margin="0,0,10,40" VerticalAlignment="Bottom" Width="90" Click="ChangeName_button_Click" MinHeight="20" Height="20" MinWidth="90"/>
+        <ListBox x:Name="UserList" Margin="10,10,10,0" VerticalAlignment="Top" MinHeight="310"/>
+        <Button x:Name="Clear_Selection" Content="Clear Selected Users" Margin="10,0,10,70" HorizontalContentAlignment="Center" VerticalAlignment="Bottom" MinHeight="20"/>
 
     </Grid>
 </Window>
