@@ -24,6 +24,7 @@ namespace Client {
             InitializeComponent();
 
             _client = client;
+            UpdateNickName(_client._nick);
         }
 
         public void UpdateChatWindow(string message) {

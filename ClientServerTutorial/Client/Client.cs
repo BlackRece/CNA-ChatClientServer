@@ -32,6 +32,22 @@ namespace Client {
                 }
             }
 
+            public bool IsReady {
+                get {
+                    bool result = false;
+                    if (_isWPF) {
+                        try {
+                            result = _wpf.IsInitialized;
+                        } catch { }
+                    } else {
+                        try {
+                            result = _win.Visible;
+                        } catch { }
+                    }
+                    return result;
+                }
+            }
+
             private Client_WinForm _win;
             private Client_WPFForm _wpf;
 
@@ -157,6 +173,7 @@ namespace Client {
 
             LoginPacket logPacket = new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint);
             logPacket._clientKey = _crypt.PublicKey;
+            _nick = _crypt.PublicKey.ToString().Substring(0, 4);
             TcpSendPacket(logPacket);
         }
 
