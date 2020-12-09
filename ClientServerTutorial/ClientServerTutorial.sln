@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Packets", "Packets\Packets.csproj", "{F14CE456-1972-4B78-B064-7A3B14D1A62A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameClient", "GameClient\GameClient.csproj", "{1DA93D2D-2868-446D-B477-95EF7C1EE910}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security", "Security\Security.csproj", "{9B39F912-00F0-4683-9476-739B4ACCFB80}"
 EndProject
 Global
@@ -31,10 +29,6 @@ Global
 		{F14CE456-1972-4B78-B064-7A3B14D1A62A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F14CE456-1972-4B78-B064-7A3B14D1A62A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F14CE456-1972-4B78-B064-7A3B14D1A62A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1DA93D2D-2868-446D-B477-95EF7C1EE910}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1DA93D2D-2868-446D-B477-95EF7C1EE910}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1DA93D2D-2868-446D-B477-95EF7C1EE910}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1DA93D2D-2868-446D-B477-95EF7C1EE910}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B39F912-00F0-4683-9476-739B4ACCFB80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9B39F912-00F0-4683-9476-739B4ACCFB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B39F912-00F0-4683-9476-739B4ACCFB80}.Release|Any CPU.ActiveCfg = Release|Any CPU

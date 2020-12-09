@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Server {
-    class Client {
+    public class Client {
         Socket _socket;
         public string _name;
 
@@ -125,7 +125,8 @@ namespace Server {
                 _formatter.Serialize(memStream, packet);
 
                 //3 get byte array
-                byte[] buffer = memStream.GetBuffer();
+                byte[] buffer = memStream.GetBuffer(); //large but guaranteed file size
+                // use ToArray() = volatile file size
 
                 //4 write length
                 _writer.Write(buffer.Length);

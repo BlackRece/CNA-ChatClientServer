@@ -8,9 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace GameClient {
-    public partial class Form1 : Form {
-        public Form1() {
+namespace Client {
+    public partial class Game_WinForm : Form {
+        Client _client;
+
+        public Game_WinForm(Client client) {
+            _client = client;
             InitializeComponent();
         }
     }

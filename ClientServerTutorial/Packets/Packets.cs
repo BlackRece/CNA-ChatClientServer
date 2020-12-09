@@ -15,7 +15,8 @@ namespace Packets {
             LOGIN,
             USERLIST,
             SECUREMESSAGE,
-            ENDSESSION
+            ENDSESSION,
+            JOINGAME
         }
 
         public PacketType _packetType { get; protected set; }
@@ -119,6 +120,15 @@ namespace Packets {
     public class EndSessionPacket : Packet {
         public EndSessionPacket() {
             _packetType = PacketType.ENDSESSION;
+        }
+    }
+
+    [Serializable]
+    public class JoinGamePacket : Packet {
+        public string _targetHost;
+        public JoinGamePacket(string host) {
+            _targetHost = host;
+            _packetType = PacketType.JOINGAME;
         }
     }
 }

@@ -32,6 +32,18 @@ namespace Client {
                 }
             }
 
+            public string[] UserList {
+                set {
+                    if (value.Length < 1)
+                        return;
+
+                    if (_isWPF)
+                        _wpf.UpdateUserList(value);
+                    else
+                        _win.UpdateUserList(value);
+                }
+            }
+
             public bool IsReady {
                 get {
                     bool result = false;
@@ -50,6 +62,12 @@ namespace Client {
 
             private Client_WinForm _win;
             private Client_WPFForm _wpf;
+
+            private Game_WinForm _winGame;
+            public Game_WinForm gameForm {
+                get { return _winGame; }
+                set { _winGame = value; }
+            }
 
             public void NewWin(string choice, Client client) {
                 if (choice == "1") {
@@ -221,6 +239,14 @@ namespace Client {
                             Console.WriteLine("Disconnecting from server.");
 
                             _tcpClient.Close();
+                            break;
+                        case Packet.PacketType.JOINGAME:
+                            _win.gameForm = new Game_WinForm(this);
+                            _win.gameForm.ShowDialog();
+                            break;
+                        case Packet.PacketType.USERLIST:
+                            UserListPacket userList = (UserListPacket)packet;
+                            _win.UserList = userList._users;
                             break;
                     }
                 }

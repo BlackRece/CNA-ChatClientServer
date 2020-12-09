@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Server {
     class Server {
+
+        //GameSession _gameSession;
+        
         TcpListener _tcpListener;
         UdpClient _udpListener;
         /*
@@ -39,7 +42,9 @@ namespace Server {
         public Server(string ipAddress, int port) {
             _tcpListener = new TcpListener(IPAddress.Parse(ipAddress), port);
             _udpListener = new UdpClient(port);
-            //_udpListener.Connect(IPAddress.Parse(ipAddress), port);
+
+            //_gameSession = new GameSession();
+            
         }
 
         public void Start() {
@@ -86,15 +91,12 @@ namespace Server {
 
             Packet receivedPacket;
             Client client = _clients[index];
-            List<string> usernames = new List<string>();
 
             try {
                 while ((receivedPacket = client.TcpRead()) != null) {
                     Console.Write("TCP Receieved: ");
 
-                    // collect user names
-                    foreach (KeyValuePair<int, Client> c in _clients)
-                        usernames.Add(c.Value._name);
+                    
 
                     // act on packet type
                     switch (receivedPacket._packetType) {
@@ -123,6 +125,7 @@ namespace Server {
                             client.TcpSend(servPacket);
 
                             break;
+
                         case Packet.PacketType.CLIENTNAME:
                             Console.WriteLine("NAME");
 
@@ -188,6 +191,52 @@ namespace Server {
                             client.Close();
 
                             break;
+                        case Packet.PacketType.JOINGAME:
+                            Console.Write("JOIN GAME - ");
+                            JoinGamePacket joinGame = (JoinGamePacket)receivedPacket;
+
+                            if(!string.IsNullOrEmpty(joinGame._targetHost)) {
+                                foreach (Client user in _clients.Values) {
+                                    if(user._name == joinGame._targetHost) {
+                                        if (GameSession.Instance.JoinSession(ref client, user)) {
+                                            Console.WriteLine("HOSTED GAME");
+                                            //success - msg client
+                                        } else {
+                                            Console.WriteLine("FAILED");
+                                            //failed - msg client 
+                                        };
+                                        break;
+                                    } 
+                                }
+                            } else {
+                                if (GameSession.Instance.JoinSession(ref client, null)) {
+                                    Console.WriteLine("HOSTING GAME");
+                                    //success - msg client
+                                } else {
+                                    Console.WriteLine("FAILED");
+                                    //failed - msg client 
+                                };
+                            }
+
+                            break;
+                        case Packet.PacketType.USERLIST:
+                            Console.WriteLine("USERLIST");
+                            UserListPacket userList = (UserListPacket)receivedPacket;
+
+                            if (userList._users == null) {
+                                List<string> usernames = new List<string>();
+
+                                // collect user names
+                                foreach (KeyValuePair<int, Client> c in _clients)
+                                    usernames.Add(c.Value._name);
+
+                                userList._users = usernames.ToArray();
+
+                                TcpSendToAll(userList);
+                            }
+                            // if list is filled, why is it here?!
+
+                            break;
                         default:
                             break;
                     }
@@ -216,6 +265,12 @@ namespace Server {
                 case "nani": return "What!?";
                 case "?": return "commands: hi, nani, ?, end";
                 default: return "I have no response to that message.";
+            }
+        }
+
+        void TcpSendToAll(Packet packet) {
+            foreach (KeyValuePair<int, Client> pair in _clients) {
+                pair.Value.TcpSend(packet);
             }
         }
 

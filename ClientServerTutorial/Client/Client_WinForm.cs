@@ -18,8 +18,16 @@ namespace Client {
 
             _client = client;
             UpdateNickName(_client._nick);
+            GetUserList();
         }
 
+        private void GetUserList() {
+            UserListPacket userList = new UserListPacket(null);
+            _client.TcpSendPacket(userList);
+        }
+        private void Client_WinForm_Shown(Object sender, EventArgs e) {
+            GetUserList();
+        }
         public void UpdateChatWindow(string message) {
             try { 
                 if (MessageWindow.InvokeRequired) {
@@ -43,7 +51,23 @@ namespace Client {
                         UpdateNickName(name);
                     }));
                 } else {
-                    NickName_label.Text = _client._nick;
+                    NickName_label.Text = name;
+                }
+            } catch (Exception e) {
+                DisplayError(e);
+            }
+        }
+
+        public void UpdateUserList(string[] userList) {
+            try {
+                if (UserList.InvokeRequired) {
+                    Invoke(new Action(() => {
+                        UpdateUserList(userList);
+                    }));
+                } else {
+                    foreach(string user in userList) {
+                        UserList.Items.Add(user);
+                    }
                 }
             } catch (Exception e) {
                 DisplayError(e);
@@ -80,6 +104,14 @@ namespace Client {
             // notify server of closing
             _client.TcpSendPacket(new EndSessionPacket());
 
+        }
+
+        private void LaunchGame_Click(object sender, EventArgs e) {
+            JoinGamePacket joinGame = new JoinGamePacket(
+                UserList.SelectedItem.ToString()
+            );
+
+            _client.TcpSendPacket(joinGame);
         }
     }
 }

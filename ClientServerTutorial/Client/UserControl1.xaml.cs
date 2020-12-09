@@ -16,16 +16,16 @@ using System.Windows.Shapes;
 
 namespace Client {
     /// <summary>
-    /// Interaction logic for Client_WPFForm.xaml
+    /// Interaction logic for UserControl1.xaml
     /// </summary>
-    public partial class Client_WPFForm : Window {
+    public partial class UserControl1 : Window {
         Client _client;
-        public Client_WPFForm(Client client) {
+
+        public UserControl1(Client client) {
             InitializeComponent();
 
             _client = client;
             UpdateNickName(_client._nick);
-            GetUserList();
         }
 
         private void GetUserList() {
@@ -57,7 +57,7 @@ namespace Client {
         public void UpdateUserList(string[] userList) {
             try {
                 UserList.Dispatcher.Invoke(() => {
-                    foreach(string user in userList) {
+                    foreach (string user in userList) {
                         UserList.Items.Add(user);
                     }
                 });
@@ -84,8 +84,8 @@ namespace Client {
         private void ChangeName_button_Click(object sender, RoutedEventArgs e) {
             ClientNamePacket namePacket = new ClientNamePacket(ChangeName_textbox.Text);
 
-            if(ChangeName_textbox.Text.Length > 0) {
-                if(_client.TcpSendPacket(namePacket)) {
+            if (ChangeName_textbox.Text.Length > 0) {
+                if (_client.TcpSendPacket(namePacket)) {
                     ChangeName_textbox.Clear();
                     InputField.Focus();
                 }
@@ -100,15 +100,10 @@ namespace Client {
         }
 
         private void Join_Game_Click(object sender, RoutedEventArgs e) {
-            string host = null;
-            if(UserList.SelectedItem != null) {
-                host = UserList.SelectedItem.ToString();
-            }
-
-            JoinGamePacket joinGame = new JoinGamePacket(host);
+            JoinGamePacket joinGame = new JoinGamePacket(UserList.SelectedItem.ToString());
 
             if (_client.TcpSendPacket(joinGame)) {
-                //this.Hide();    // might close client...
+                this.Hide();    // might close client...
             }
         }
 
