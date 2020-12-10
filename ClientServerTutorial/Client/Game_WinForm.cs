@@ -8,13 +8,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Client {
+namespace CNA_Client {
     public partial class Game_WinForm : Form {
         Client _client;
 
         public Game_WinForm(Client client) {
+            //public Game_WinForm(Client client) {
             _client = client;
             InitializeComponent();
+        }
+
+        private void Game_WinForm_Activated(object sender, EventArgs e) {
+            gameControl1._client = _client;
         }
     }
 }

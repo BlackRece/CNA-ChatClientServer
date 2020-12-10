@@ -20,7 +20,7 @@ namespace Security
         public RSAParameters ExternalKey;
 
         public Secure() {
-            _RSAProvider = new RSACryptoServiceProvider(2048);
+            _RSAProvider = new RSACryptoServiceProvider(1024);
             _publicKey = _RSAProvider.ExportParameters(false);
             _privateKey = _RSAProvider.ExportParameters(true);
 
@@ -29,10 +29,17 @@ namespace Security
         }
 
         public byte[] Decrypt(byte[] data) {
+            byte[] result = data;
             lock (_decrypt) {
-                _RSAProvider.ImportParameters(_privateKey);
-                return _RSAProvider.Decrypt(data, true);
+                try {
+                    _RSAProvider.ImportParameters(_privateKey);
+                    result = _RSAProvider.Decrypt(data, false);
+                } catch (Exception e) {
+                    Console.WriteLine("Encrypt Error: " + e.Message);
+                    Console.WriteLine("PrivateKey: " + _privateKey);
+                }
             }
+            return result;
         }
 
         public string DecryptString(byte[] message) {
@@ -40,17 +47,19 @@ namespace Security
             string result = Encoding.UTF8.GetString(data);
             return result;
         }
+
         public byte[] Encrypt(byte[] data) {
+            byte[] result = data;
             lock (_encrypt) {
                 try {
                     _RSAProvider.ImportParameters(ExternalKey);
-                    return _RSAProvider.Encrypt(data, true);
+                    result = _RSAProvider.Encrypt(data, false);
                 } catch (Exception e) {
                     Console.WriteLine("Encrypt Error: " + e.Message);
                     Console.WriteLine("ExternalKey: " + ExternalKey);
-                    return null;
                 }
             }
+            return result;
         }
 
         public byte[] EncryptString(string message) {

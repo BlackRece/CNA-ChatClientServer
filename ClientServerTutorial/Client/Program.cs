@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Client { 
+namespace CNA_Client { 
     class Program {
         [STAThread]
         static void Main(string[] args) {

@@ -13,7 +13,7 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin img/RedShip.png
+#begin image/RedShip.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -23,9 +23,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/RedShip.png
+/build:image/RedShip.png
 
-#begin img/Spaceship+game+Pixelart+590+x+1800.jpg
+#begin image/Spaceship+game+Pixelart+590+x+1800.jpg
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -35,9 +35,9 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/Spaceship+game+Pixelart+590+x+1800.jpg
+/build:image/Spaceship+game+Pixelart+590+x+1800.jpg
 
-#begin img/spritesheet.png
+#begin image/spritesheet.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -47,5 +47,5 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:img/spritesheet.png
+/build:image/spritesheet.png
 

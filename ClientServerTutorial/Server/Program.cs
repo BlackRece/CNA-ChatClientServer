@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Server {
+namespace CNA_Server {
     class Program {
 
         static void Main(string[] args) {

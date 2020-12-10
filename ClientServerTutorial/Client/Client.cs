@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Client {
+namespace CNA_Client {
     public class Client {
         struct WinClient {
             bool IsWPF { get; }
@@ -114,24 +114,6 @@ namespace Client {
             _tcpClient.Close();
             _udpClient.Close();
         }
-
-        public Packet TcpReadPacket() {
-            int numberOfBytes;
-            Packet packet = new Packet();
-
-            try {
-                // check reader and store return val
-                if ((numberOfBytes = _reader.ReadInt32()) > 0) {
-                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
-                    MemoryStream memStream = new MemoryStream(buffer);
-                    packet = _formatter.Deserialize(memStream) as Packet;
-                }
-            } catch (Exception e) {
-                Console.WriteLine("Error: " + e.Message);
-            }
-
-            return packet;
-        }
                
         public void Run() {
             // create window container
@@ -165,6 +147,8 @@ namespace Client {
             // clean up connections before exit
             Close();
         }
+
+        #region TCP related code
 
         public bool TcpConnect(string ipAddress, int port) {
             try {
@@ -210,6 +194,7 @@ namespace Client {
                             ClientNamePacket namePacket = (ClientNamePacket)packet;
 
                             _win.name = namePacket._name;
+                            _nick = namePacket._name;
                             break;
                         case Packet.PacketType.CHATMESSAGE:
                             ChatMessagePacket chatPacket = (ChatMessagePacket)packet;
@@ -230,9 +215,9 @@ namespace Client {
                         case Packet.PacketType.SECUREMESSAGE:
                             SecurePacket safePacket = (SecurePacket)packet;
                             _win.UpdateChat(
-                                "Secure Message Received [" + safePacket._author + "]: " +
+                                "Secure Message Received [" + safePacket._packetSrc + "]: " +
                                 _crypt.DecryptString(safePacket._data)
-                                );
+                            );
 
                             break;
                         case Packet.PacketType.ENDSESSION:
@@ -251,6 +236,24 @@ namespace Client {
                     }
                 }
             }
+        }
+
+        public Packet TcpReadPacket() {
+            int numberOfBytes;
+            Packet packet = new Packet();
+
+            try {
+                // check reader and store return val
+                if ((numberOfBytes = _reader.ReadInt32()) > 0) {
+                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
+                    MemoryStream memStream = new MemoryStream(buffer);
+                    packet = _formatter.Deserialize(memStream) as Packet;
+                }
+            } catch (Exception e) {
+                Console.WriteLine("Error: " + e.Message);
+            }
+
+            return packet;
         }
 
         public bool TcpSendPacket(Packet packet) {
@@ -281,10 +284,14 @@ namespace Client {
         }
 
         public bool TcpSendSecurePacket(string message) {
-            SecurePacket securePacket = new SecurePacket(_nick, _crypt.EncryptString(message));
+            SecurePacket securePacket = new SecurePacket(_crypt.EncryptString(message)) {
+                _packetSrc = _nick
+            };
 
             return TcpSendPacket(securePacket);
         }
+
+#endregion
 
         private void UdpProcessServerPacket() {
             try {

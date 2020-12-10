@@ -89,6 +89,7 @@ namespace Packets {
 
         public UserListPacket(string[] users) {
             _users = users;
+            _packetType = PacketType.USERLIST;
         }
     }
 
@@ -108,8 +109,8 @@ namespace Packets {
     [Serializable]
     public class SecurePacket : Packet {
         public byte[] _data;
-        public string _author;
-        public SecurePacket(string _author, byte[] data) {
+
+        public SecurePacket(byte[] data) {
             _data = data;
 
             _packetType = PacketType.SECUREMESSAGE;

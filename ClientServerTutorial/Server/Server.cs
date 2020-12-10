@@ -11,11 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Server {
+namespace CNA_Server {
     class Server {
 
-        //GameSession _gameSession;
-        
         TcpListener _tcpListener;
         UdpClient _udpListener;
         /*
@@ -38,13 +36,11 @@ namespace Server {
 
         ConcurrentDictionary<int, Client> _clients;
         int _maxClients = 4;
+        string _serverName = "Boss Server";
 
         public Server(string ipAddress, int port) {
             _tcpListener = new TcpListener(IPAddress.Parse(ipAddress), port);
             _udpListener = new UdpClient(port);
-
-            //_gameSession = new GameSession();
-            
         }
 
         public void Start() {
@@ -68,11 +64,8 @@ namespace Server {
                     tcpThread = new Thread(() => { TcpRejectClient(newClient); });
                     udpThread = new Thread(() => { UdpRejectClient(newClient); });
                 } else {
-                    //newClient._endPoint = (IPEndPoint)_udpListener.Client.RemoteEndPoint;
-                    //newClient._endPoint = (IPEndPoint)_udpListener.Client.LocalEndPoint;
                     _clients.TryAdd(index, newClient);
 
-                    //thread = new Thread(() => { ClientMethod(newClient); });
                     tcpThread = new Thread(() => { TcpClientMethod(index); });
                     udpThread = new Thread(() => { UdpListen(); });
                 }
@@ -149,10 +142,8 @@ namespace Server {
 
                             LoginPacket loginPacket = (LoginPacket)receivedPacket;
                             client._endPoint = loginPacket._endPoint;
-                            client.UpdateRSA(ref loginPacket);
+                            loginPacket._serverKey = client.UpdateRSA(loginPacket);
 
-                            //now that the login packet has been updated with both the
-                            //server AND client public keys, do what?
                             client.TcpSend(loginPacket);
                             
                             break;
@@ -162,17 +153,16 @@ namespace Server {
                             // receive packet
                             SecurePacket safePacket = (SecurePacket)receivedPacket;
 
-                            // decrypt packet
-                            string message = client.GetSecureMessage(safePacket);
+                            // decrypt message from secure packet and store...
+                            ChatMessagePacket rawPacket = new ChatMessagePacket(
+                                client.GetSecureMessage(safePacket)
+                            );
 
-                            // process packet
-                            /* do summut */
-
-                            // encrypt packet
-                            safePacket._data = client.SetSecureMessage(message);
+                            // set packet author
+                            rawPacket._packetSrc = client._name;
 
                             // transmit packet
-                            TcpSecureRespondToAll(safePacket);
+                            TcpSecureRespondToAll(rawPacket);
 
                             break;
 
@@ -194,29 +184,32 @@ namespace Server {
                         case Packet.PacketType.JOINGAME:
                             Console.Write("JOIN GAME - ");
                             JoinGamePacket joinGame = (JoinGamePacket)receivedPacket;
+                            Client host = null;
 
-                            if(!string.IsNullOrEmpty(joinGame._targetHost)) {
-                                foreach (Client user in _clients.Values) {
-                                    if(user._name == joinGame._targetHost) {
-                                        if (GameSession.Instance.JoinSession(ref client, user)) {
-                                            Console.WriteLine("HOSTED GAME");
-                                            //success - msg client
-                                        } else {
-                                            Console.WriteLine("FAILED");
-                                            //failed - msg client 
-                                        };
-                                        break;
-                                    } 
+                            foreach (Client user in _clients.Values) {
+                                if(user._name == joinGame._targetHost) {
+                                    host = user;
                                 }
-                            } else {
-                                if (GameSession.Instance.JoinSession(ref client, null)) {
-                                    Console.WriteLine("HOSTING GAME");
-                                    //success - msg client
-                                } else {
-                                    Console.WriteLine("FAILED");
-                                    //failed - msg client 
-                                };
                             }
+
+                            //ChatMessagePacket resultPacket = null;
+
+                            if (GameSession.Instance.JoinSession(ref client, host)) {
+                                Console.WriteLine("JOINED A GAME");
+
+                                //success - msg client
+                                PrivateMessagePacket resultPacket = 
+                                    new PrivateMessagePacket(client._name, "Started Game Session") 
+                                    { _packetSrc = _serverName };
+                                TcpRespondTo(resultPacket, client);
+
+                                //launch client's game
+                                client.TcpSend(joinGame);
+
+                            } else {
+                                Console.WriteLine("FAILED TO JOIN A GAME");
+                                //failed - msg client 
+                            };
 
                             break;
                         case Packet.PacketType.USERLIST:
@@ -288,9 +281,14 @@ namespace Server {
             }
         }
 
-        void TcpSecureRespondToAll(SecurePacket secureChatMsg) {
+        void TcpSecureRespondToAll(ChatMessagePacket rawPacket) {
+            SecurePacket safePacket = new SecurePacket(null);
+
             foreach (KeyValuePair<int, Client> pair in _clients) {
-                    pair.Value.TcpSend(secureChatMsg);
+                // encrypt packet
+                safePacket._data = pair.Value.SetSecureMessage(rawPacket._message);
+
+                pair.Value.TcpSend(safePacket);
             }
         }
 

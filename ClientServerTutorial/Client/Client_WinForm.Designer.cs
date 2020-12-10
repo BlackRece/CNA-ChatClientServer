@@ -1,4 +1,4 @@
-﻿namespace Client {
+﻿namespace CNA_Client {
     partial class Client_WinForm {
         /// <summary>
         /// Required designer variable.

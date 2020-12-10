@@ -1,5 +1,6 @@
-﻿namespace Client {
+﻿namespace CNA_Client {
     partial class Game_WinForm {
+
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -23,21 +24,12 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            this.gameControl1 = new GameControl(_client);
             this.ExitButton = new System.Windows.Forms.Button();
             this.SubmitButton = new System.Windows.Forms.Button();
             this.MessageWindow = new System.Windows.Forms.TextBox();
             this.InputField = new System.Windows.Forms.TextBox();
+            this.gameControl1 = new CNA_Client.GameControler();
             this.SuspendLayout();
-            // 
-            // gameControl1
-            // 
-            this.gameControl1.Location = new System.Drawing.Point(174, 12);
-            this.gameControl1.MouseHoverUpdatesOnly = false;
-            this.gameControl1.Name = "gameControl1";
-            this.gameControl1.Size = new System.Drawing.Size(614, 426);
-            this.gameControl1.TabIndex = 0;
-            this.gameControl1.Text = "gameControl1";
             // 
             // ExitButton
             // 
@@ -75,30 +67,39 @@
             this.InputField.TabIndex = 4;
             this.InputField.Text = "InputField";
             // 
+            // gameControl1
+            // 
+            this.gameControl1.Location = new System.Drawing.Point(174, 12);
+            this.gameControl1.MouseHoverUpdatesOnly = false;
+            this.gameControl1.Name = "gameControl1";
+            this.gameControl1.Size = new System.Drawing.Size(614, 426);
+            this.gameControl1.TabIndex = 5;
+            this.gameControl1.Text = "gameControl1";
+            // 
             // Game_WinForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.gameControl1);
             this.Controls.Add(this.InputField);
             this.Controls.Add(this.MessageWindow);
             this.Controls.Add(this.SubmitButton);
             this.Controls.Add(this.ExitButton);
-            this.Controls.Add(this.gameControl1);
             this.Name = "Game_WinForm";
             this.Text = "Game_WinForm";
+            this.Activated += new System.EventHandler(this.Game_WinForm_Activated);
             this.ResumeLayout(false);
             this.PerformLayout();
-
 
         }
 
         #endregion
 
-        private GameControl gameControl1;
         private System.Windows.Forms.Button ExitButton;
         private System.Windows.Forms.Button SubmitButton;
         private System.Windows.Forms.TextBox MessageWindow;
         private System.Windows.Forms.TextBox InputField;
+        private CNA_Client.GameControler gameControl1;
     }
 }

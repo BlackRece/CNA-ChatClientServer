@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server {
+namespace CNA_Server {
     public sealed class GameSession {
         private static readonly Lazy<GameSession>
             lazy = new Lazy<GameSession>(() => new GameSession());
@@ -14,6 +14,12 @@ namespace Server {
         private class Session {
             public Client _host;
             public List<Client> _players;
+
+            public Session(Client host) {
+                _host = host;
+                _players = new List<Client>();
+                _players.Clear();
+            }
         }
 
         private class PlayerSorting : IComparer<Session> {
@@ -43,7 +49,7 @@ namespace Server {
 
             foreach (Session currentGame in _sessions) {
                 //look for matching host
-                if (currentGame._host == target) {
+                if (currentGame._host._name == target._name) {
                     result = _sessions.IndexOf(currentGame);
                 }
             }
@@ -55,9 +61,9 @@ namespace Server {
             int result = -1;
 
             int playerCount = _gamePlayerMax;
-            IComparer<Session> comparer = new PlayerSorting();
+            //IComparer<Session> comparer = new PlayerSorting();
 
-            _sessions.Sort(comparer);
+            //_sessions.Sort(comparer);
 
             foreach (Session session in _sessions) {
                 if(session._players.Count == 0) {
@@ -79,8 +85,7 @@ namespace Server {
         /// </summary>
         /// <param name="host"></param>
         public void StartNewSession(Client host) {
-            Session newSession = new Session();
-            newSession._host = host;
+            Session newSession = new Session(host);
             _sessions.Add(newSession);
         }
 
@@ -119,11 +124,16 @@ namespace Server {
             int index = FindSession(ref host);
 
 
-            Session target = _sessions.ElementAt(index);
-
-            if (target._players.Count < _gamePlayerMax) {
-                target._players.Add(player);
+            if(index < 0) {
+                StartNewSession(player);
                 result = true;
+            } else {
+                Session target = _sessions.ElementAt(index);
+
+                if (target._players.Count < _gamePlayerMax) {
+                    target._players.Add(player);
+                    result = true;
+                }
             }
 
             return result;
@@ -132,7 +142,7 @@ namespace Server {
         public int FindSession(ref Client host) {
             int result = -1;
 
-            if (SessionCount > 1) {
+            if (SessionCount > 0) {
 
                 if (host != null) {
                     result = FindHostedSession(ref host);

@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Client {
+namespace CNA_Client {
     public partial class Client_WinForm : Form {
         Client _client;
 
@@ -25,9 +25,11 @@ namespace Client {
             UserListPacket userList = new UserListPacket(null);
             _client.TcpSendPacket(userList);
         }
+
         private void Client_WinForm_Shown(Object sender, EventArgs e) {
             GetUserList();
         }
+
         public void UpdateChatWindow(string message) {
             try { 
                 if (MessageWindow.InvokeRequired) {
@@ -65,8 +67,10 @@ namespace Client {
                         UpdateUserList(userList);
                     }));
                 } else {
+                    UserList.Items.Clear();
                     foreach(string user in userList) {
-                        UserList.Items.Add(user);
+                        if(user != null) 
+                            UserList.Items.Add(user);
                     }
                 }
             } catch (Exception e) {
@@ -81,11 +85,14 @@ namespace Client {
                 InputField.Clear();
                 InputField.Focus();
             }
+
+            GetUserList();
         }
 
         private void ChangeName_Button_Click(object sender, EventArgs e) {
             if(ChangeName_textbox.TextLength > 0) {
-                if (_client.TcpSendPacket(new ClientNamePacket(ChangeName_textbox.Text))) {
+                if (_client.TcpSendPacket(new ClientNamePacket(ChangeName_textbox.Text) 
+                { _packetSrc = _client._nick })) {
                     ChangeName_textbox.Clear();
                     InputField.Focus();
                 }
@@ -107,9 +114,13 @@ namespace Client {
         }
 
         private void LaunchGame_Click(object sender, EventArgs e) {
-            JoinGamePacket joinGame = new JoinGamePacket(
-                UserList.SelectedItem.ToString()
-            );
+            string host = null;
+            if(UserList.SelectedItem != null)
+                host =UserList.SelectedItem.ToString();
+
+            JoinGamePacket joinGame = new JoinGamePacket(host) {
+                _packetSrc = _client._nick
+            };
 
             _client.TcpSendPacket(joinGame);
         }

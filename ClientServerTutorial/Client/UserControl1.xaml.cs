@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client {
+namespace CNA_Client {
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>

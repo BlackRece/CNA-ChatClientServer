@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server {
+namespace CNA_Server {
     public class Client {
         Socket _socket;
         public string _name;
@@ -149,9 +149,9 @@ namespace Server {
             udpClient.Send(buffer, buffer.Length, _endPoint);
         }
 
-        public void UpdateRSA(ref LoginPacket logPacket) {
+        public RSAParameters UpdateRSA(LoginPacket logPacket) {
             _crypt.ExternalKey = logPacket._clientKey;
-            logPacket._serverKey = _crypt.PublicKey;
+            return _crypt.PublicKey;
         }
 
         public string GetSecureMessage(SecurePacket safePacket) {
