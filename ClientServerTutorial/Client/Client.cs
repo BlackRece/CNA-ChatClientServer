@@ -14,82 +14,7 @@ using System.Threading.Tasks;
 
 namespace CNA_Client {
     public class Client {
-        struct WinClient {
-            bool IsWPF { get; }
-            private bool _isWPF;
-
-            private string _name;
-            public string name {
-                get { return _name; }
-                set {
-                    if (value.Length > 0) {
-                        _name = value;
-                        if (_isWPF)
-                            _wpf.UpdateNickName(value);
-                        else
-                            _win.UpdateNickName(value);
-                    }
-                }
-            }
-
-            public string[] UserList {
-                set {
-                    if (value.Length < 1)
-                        return;
-
-                    if (_isWPF)
-                        _wpf.UpdateUserList(value);
-                    else
-                        _win.UpdateUserList(value);
-                }
-            }
-
-            public bool IsReady {
-                get {
-                    bool result = false;
-                    if (_isWPF) {
-                        try {
-                            result = _wpf.IsInitialized;
-                        } catch { }
-                    } else {
-                        try {
-                            result = _win.Visible;
-                        } catch { }
-                    }
-                    return result;
-                }
-            }
-
-            private Client_WinForm _win;
-            private Client_WPFForm _wpf;
-
-            private Game_WinForm _winGame;
-            public Game_WinForm gameForm {
-                get { return _winGame; }
-                set { _winGame = value; }
-            }
-
-            public void NewWin(string choice, Client client) {
-                if (choice == "1") {
-                    _isWPF = false;
-                    _win = new Client_WinForm(client);
-                    _win.ShowDialog();
-                } else {
-                    _isWPF = true;
-                    _wpf = new Client_WPFForm(client);
-                    _wpf.ShowDialog();
-                }
-            }
-
-            public void UpdateChat(string message) {
-                if (_isWPF)
-                    _wpf.UpdateChatWindow(message);
-                else
-                    _win.UpdateChatWindow(message);
-            }
-
-        }
-
+        
         TcpClient _tcpClient;
         UdpClient _udpClient;
 
@@ -99,11 +24,10 @@ namespace CNA_Client {
         BinaryReader _reader;
         BinaryWriter _writer;
 
-        WinClient _win;
+        private Secure _crypt;
+        WindowManager _win;
 
         public string _nick;
-
-        private Secure _crypt;
 
         public Client() {
             _crypt = new Secure();
@@ -116,9 +40,6 @@ namespace CNA_Client {
         }
                
         public void Run() {
-            // create window container
-            _win = new WinClient();
-
             // select window type
             Console.WriteLine(
                 "Select client type:\n" +
@@ -140,8 +61,8 @@ namespace CNA_Client {
             // login to server
             TcpLogin();
 
-            // launch selected window
-            _win.NewWin(choice, this);
+            // create and launch selected window
+            _win = new WindowManager(choice, this);
             // this blocks the thread until window is closed
 
             // clean up connections before exit
@@ -226,8 +147,7 @@ namespace CNA_Client {
                             _tcpClient.Close();
                             break;
                         case Packet.PacketType.JOINGAME:
-                            _win.gameForm = new Game_WinForm(this);
-                            _win.gameForm.ShowDialog();
+                            _win.StartGame(this);
                             break;
                         case Packet.PacketType.USERLIST:
                             UserListPacket userList = (UserListPacket)packet;
