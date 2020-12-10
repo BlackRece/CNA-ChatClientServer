@@ -70,9 +70,6 @@
     <Compile Include="GameControler.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="GameFrame.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Game_WinForm.cs">
       <SubType>Form</SubType>
     </Compile>

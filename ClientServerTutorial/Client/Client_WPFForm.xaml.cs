@@ -102,6 +102,7 @@ namespace CNA_Client {
                     InputField.Focus();
                 }
             }
+            GetUserList();
         }
 
         private void DisplayError(Exception e) {
@@ -126,10 +127,6 @@ namespace CNA_Client {
         }
 
         private void Window_Activated(object sender, EventArgs e) {
-            GetUserList();
-        }
-
-        private void OnActivated(object sender, EventArgs e) {
             GetUserList();
         }
     }
