@@ -29,12 +29,13 @@ namespace CNA_Client {
         }
 
         private void GetUserList() {
-            UserListPacket userList = new UserListPacket(null) {
-                _packetSrc = _client._nick
-            };
-            _client.TcpSendPacket(userList);
+            _client.Send(new UserListPacket(null)
+                {_packetSrc = _client._nick});
+            
         }
 
+        #region Control Update methods
+        
         public void UpdateChatWindow(string message) {
             try {
                 MessageWindow.Dispatcher.Invoke(() => {
@@ -72,13 +73,10 @@ namespace CNA_Client {
             }
         }
 
-        private void SubmitButton_Click(object sender, RoutedEventArgs e) {
-            ChatMessagePacket chatPacket = new ChatMessagePacket(InputField.Text) {
-                _packetSrc = _client._nick
-            };
+        #endregion
 
-            //if (_client.TcpSendPacket(chatPacket)) {
-            if (_client.TcpSendSecurePacket(InputField.Text)) {
+        private void SubmitButton_Click(object sender, RoutedEventArgs e) {
+            if (_client.SendSecure(InputField.Text)) {
                 InputField.Clear();
                 InputField.Focus();
             }
@@ -90,14 +88,11 @@ namespace CNA_Client {
 
         }
 
-
         private void ChangeName_button_Click(object sender, RoutedEventArgs e) {
-            ClientNamePacket namePacket = new ClientNamePacket(ChangeName_textbox.Text) {
-                _packetSrc = _client._nick
-            };
-
             if(ChangeName_textbox.Text.Length > 0) {
-                if(_client.TcpSendPacket(namePacket)) {
+                if(_client.Send(
+                    new ClientNamePacket(ChangeName_textbox.Text) 
+                        { _packetSrc = _client._nick })) {
                     ChangeName_textbox.Clear();
                     InputField.Focus();
                 }
@@ -117,11 +112,8 @@ namespace CNA_Client {
             if(UserList.SelectedItem != null)
                 UserList.SelectedItem.ToString();
 
-            JoinGamePacket joinGame = new JoinGamePacket(host) {
-                _packetSrc = _client._nick
-            };
-
-            if (_client.TcpSendPacket(joinGame)) {
+            if (_client.Send(new JoinGamePacket(host) 
+                { _packetSrc = _client._nick })) {
                 //this.Hide();    // might close client...
             }
         }

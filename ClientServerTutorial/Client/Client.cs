@@ -14,29 +14,18 @@ using System.Threading.Tasks;
 
 namespace CNA_Client {
     public class Client {
-        
-        TcpClient _tcpClient;
-        UdpClient _udpClient;
 
-        NetworkStream _stream;
-        BinaryFormatter _formatter;
-
-        BinaryReader _reader;
-        BinaryWriter _writer;
-
-        private Secure _crypt;
-        WindowManager _win;
+        private NetworkManager _net;
+        private WindowManager _win;
 
         public string _nick;
 
         public Client() {
-            _crypt = new Secure();
+            _net = new NetworkManager(ref _nick);
         }
 
-        public void Close() {
-            // close local connections
-            _tcpClient.Close();
-            _udpClient.Close();
+        public bool Connect(string ipAddress, int port) {
+            return _net.TcpConnect(ipAddress, port);
         }
                
         public void Run() {
@@ -51,6 +40,9 @@ namespace CNA_Client {
             while (choice != "1" && choice != "2")
                 choice = Console.ReadLine();
 
+            // create window
+            _win = new WindowManager(choice, this);
+
             // start network worker threads
             Thread tcpThread = new Thread(() => TcpProcessServerPacket());
             tcpThread.Start();
@@ -59,53 +51,49 @@ namespace CNA_Client {
             udpThread.Start();
 
             // login to server
-            TcpLogin();
+            _net.TcpBeginLogin(_nick);
 
-            // create and launch selected window
-            _win = new WindowManager(choice, this);
-            // this blocks the thread until window is closed
+            // launch selected window
+            _win.ShowWin();         // this blocks the thread until window is closed
 
             // clean up connections before exit
-            Close();
+            _net.Close();
         }
 
-        #region TCP related code
+        #region Tcp/Udp Transmit Methods
 
-        public bool TcpConnect(string ipAddress, int port) {
-            try {
-                _tcpClient = new TcpClient(ipAddress, port);
-                _udpClient = new UdpClient(ipAddress, port);
+        public bool Send(Packet packet, bool viaTcp = true) {
+            bool result = false;
 
-                _nick = port.ToString();
+            if (viaTcp)
+                result = _net.TcpSendPacket(packet);
+            else
+                result = _net.UdpSendPacket(packet);
 
-                _stream = _tcpClient.GetStream();
-                _formatter = new BinaryFormatter();
-
-                _reader = new BinaryReader(_stream);
-                _writer = new BinaryWriter(_stream);
-
-                return true;
-            } catch (Exception e) {
-                Console.WriteLine("Exception: " + e.Message);
-                return false;
-            }
+            return false;
         }
 
-        public void TcpLogin() {
-            Console.WriteLine("Logging in to server...");
+        public bool SendSecure(string message, bool viaTcp = true) {
+            bool result = false;
 
-            LoginPacket logPacket = new LoginPacket((IPEndPoint)_udpClient.Client.LocalEndPoint);
-            logPacket._clientKey = _crypt.PublicKey;
-            _nick = _crypt.PublicKey.ToString().Substring(0, 4);
-            TcpSendPacket(logPacket);
+            if (viaTcp)
+                result = _net.TcpSendSecurePacket(message, _nick);
+            else
+                result = _net.UdpSendSecurePacket(message, _nick);
+
+            return result;
         }
+
+        #endregion
+
+        #region Tcp/Udp Receive Methods
 
         private void TcpProcessServerPacket() {
             Packet packet = new Packet();
 
-            while (_tcpClient.Connected) {
-                if(_reader != null) {
-                    packet = TcpReadPacket();
+            while(_net.IsTcpConnected) {
+                packet = _net.TcpReadPacket();
+                if(packet != null) {
 
                     switch (packet._packetType) {
                         case Packet.PacketType.EMPTY:
@@ -116,6 +104,7 @@ namespace CNA_Client {
 
                             _win.name = namePacket._name;
                             _nick = namePacket._name;
+
                             break;
                         case Packet.PacketType.CHATMESSAGE:
                             ChatMessagePacket chatPacket = (ChatMessagePacket)packet;
@@ -125,122 +114,58 @@ namespace CNA_Client {
                         case Packet.PacketType.PRIVATEMESSAGE:
                             PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
                             _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
+
                             break;
                         case Packet.PacketType.LOGIN:
                             Console.WriteLine("Logged in to server.");
-
-                            LoginPacket loginPacket = (LoginPacket)packet;
-                            _crypt.ExternalKey = loginPacket._serverKey;
+                            _net.TcpFinishLogin((LoginPacket)packet);
 
                             break;
                         case Packet.PacketType.SECUREMESSAGE:
                             SecurePacket safePacket = (SecurePacket)packet;
                             _win.UpdateChat(
                                 "Secure Message Received [" + safePacket._packetSrc + "]: " +
-                                _crypt.DecryptString(safePacket._data)
+                                _net.DecryptString(safePacket._data)
                             );
 
                             break;
                         case Packet.PacketType.ENDSESSION:
                             Console.WriteLine("Disconnecting from server.");
+                            _net.Close();
 
-                            _tcpClient.Close();
                             break;
                         case Packet.PacketType.JOINGAME:
                             _win.StartGame(this);
+
                             break;
                         case Packet.PacketType.USERLIST:
                             UserListPacket userList = (UserListPacket)packet;
                             _win.UserList = userList._users;
+
+                            break;
+                        case Packet.PacketType.LEAVEGAME:
+                            LeaveGamePacket leaveGame = (LeaveGamePacket)packet;
+                            if(leaveGame._wasForced) { _win.StopGame(); }
+                            break;
+                        case Packet.PacketType.SERVERMESSAGE:
+                            ServerMessagePacket serverMessage = (ServerMessagePacket)packet;
+                            _win.UpdateChat(serverMessage._messageSent);
                             break;
                     }
                 }
             }
         }
 
-        public Packet TcpReadPacket() {
-            int numberOfBytes;
-            Packet packet = new Packet();
-
-            try {
-                // check reader and store return val
-                if ((numberOfBytes = _reader.ReadInt32()) > 0) {
-                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
-                    MemoryStream memStream = new MemoryStream(buffer);
-                    packet = _formatter.Deserialize(memStream) as Packet;
-                }
-            } catch (Exception e) {
-                Console.WriteLine("Error: " + e.Message);
-            }
-
-            return packet;
-        }
-
-        public bool TcpSendPacket(Packet packet) {
-            bool result = false;
-            //if (_writer.BaseStream.CanSeek) {
-            if (_writer != null) {
-                //1 create obj
-                MemoryStream memStream = new MemoryStream();
-
-                //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, packet);
-
-                //3 get byte array
-                byte[] buffer = memStream.GetBuffer();
-
-                //4 write length
-                _writer.Write(buffer.Length);
-
-                //5 write buffer
-                _writer.Write(buffer);
-
-                //6 flush
-                _writer.Flush();
-
-                result = true;
-            }
-            return result;
-        }
-
-        public bool TcpSendSecurePacket(string message) {
-            SecurePacket securePacket = new SecurePacket(_crypt.EncryptString(message)) {
-                _packetSrc = _nick
-            };
-
-            return TcpSendPacket(securePacket);
-        }
-
-#endregion
-
         private void UdpProcessServerPacket() {
             try {
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-
-                while(_udpClient.Client.Connected) {
-                    byte[] bytes = _udpClient.Receive(ref endPoint);
-                    Packet packet = UdpReadPacket(bytes);
+                while(_net.IsUdpConnected) {
+                    Packet packet = _net.UdpReceive;
 
                     switch (packet._packetType) {
-                        case Packet.PacketType.ERROR:
-                            break;
                         case Packet.PacketType.EMPTY:
+                            /* do nothing */
                             break;
-                        case Packet.PacketType.CHATMESSAGE:
-                            ChatMessagePacket chatPacket = (ChatMessagePacket)packet;
-                            _win.UpdateChat(chatPacket._message);
-                            break;
-                        case Packet.PacketType.PRIVATEMESSAGE:
-                            PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
-                            _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
-                            break;
-                        case Packet.PacketType.SERVERMESSAGE:
-                            break;
-                        case Packet.PacketType.CLIENTNAME:
-                            ClientNamePacket namePacket = (ClientNamePacket)packet;
-
-                            _win.name = namePacket._name;
-                            break;
+                        /*
                         case Packet.PacketType.LOGIN:
                             LoginPacket logPacket = (LoginPacket)packet;
 
@@ -249,13 +174,14 @@ namespace CNA_Client {
                                 " on Port: " + logPacket._endPoint.Port.ToString()
                             );
                             break;
-                        case Packet.PacketType.USERLIST:
-                            break;
+                        */
+                        /*
                         case Packet.PacketType.ENDSESSION:
                             Console.WriteLine("Disconnecting from server.");
 
                             _udpClient.Close();
                             break;
+                        */
                     }
                 }
             } catch (SocketException e) {
@@ -263,27 +189,7 @@ namespace CNA_Client {
             }
         }
 
-        public Packet UdpReadPacket(byte[] buffer) {
-            
-            MemoryStream memStream = new MemoryStream(buffer);
-            return _formatter.Deserialize(memStream) as Packet;
-        }
+        #endregion
 
-
-        public bool UdpSendPacket(Packet packet) {
-            //1 create obj
-            MemoryStream memStream = new MemoryStream();
-
-            //2 serialise packet and store in memoryStream
-            _formatter.Serialize(memStream, packet);
-
-            //3 get byte array
-            byte[] buffer = memStream.GetBuffer();
-
-            //4 send packet
-            int result = _udpClient.Send(buffer, buffer.Length);
-
-            return result > 0;
-        }
     }
 }

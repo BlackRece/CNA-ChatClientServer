@@ -22,6 +22,14 @@ namespace CNA_Server {
             }
         }
 
+        public bool IsHosting(Client client) {
+            foreach (Session sess in _sessions) 
+                if (sess._host._name == client._name)
+                    return true;
+            
+            return false;
+        }
+
         private class PlayerSorting : IComparer<Session> {
             int IComparer<Session>.Compare (Session s1, Session s2) {
                 int comparePlayer = s1._players.Count.CompareTo(s2._players.Count);
@@ -137,6 +145,44 @@ namespace CNA_Server {
             }
 
             return result;
+        }
+
+        public List<string> LeaveSession(ref Client player) {
+            List<string> sadUsers = new List<string>();
+            
+            foreach(Session sess in _sessions) {
+                if (sess._host == player) {
+                    sadUsers = GetPlayers(sess);
+                    _sessions.Remove(sess);
+                    break;
+                }
+
+                if (sess._players.Contains(player)) {
+                    sess._players.Remove(player);
+                    sadUsers = GetPlayers(sess);
+                    sadUsers.Add(sess._host._name);
+                    break;
+                }
+            }
+                
+            return sadUsers;
+        }
+
+        private List<string> GetPlayers(Session sess) {
+            List<string> players = new List<string>();
+
+            foreach (Client stillPlaying in sess._players) {
+                players.Add(stillPlaying._name);
+            }
+
+            return players;
+        }
+
+        private void RemovePlayer(ref Session sess, ref Client player) {
+            if(sess._host == player) { /* remove session */ }
+            if(sess._players.Contains(player)) {
+                sess._players.Remove(player);
+            }
         }
 
         public int FindSession(ref Client host) {

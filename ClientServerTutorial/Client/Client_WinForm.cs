@@ -23,12 +23,14 @@ namespace CNA_Client {
 
         private void GetUserList() {
             UserListPacket userList = new UserListPacket(null);
-            _client.TcpSendPacket(userList);
+            _client.Send(userList);
         }
 
         private void Client_WinForm_Shown(Object sender, EventArgs e) {
             GetUserList();
         }
+
+        #region Control Update methods
 
         public void UpdateChatWindow(string message) {
             try { 
@@ -78,10 +80,12 @@ namespace CNA_Client {
             }
         }
 
+        #endregion 
+
         private void SubmitButton_Click(object sender, EventArgs e) {
             //if (_client.TcpSendPacket(new ChatMessagePacket(InputField.Text))) {
             //if (_client.UdpSendPacket(new ChatMessagePacket(InputField.Text))) {
-            if (_client.TcpSendSecurePacket(InputField.Text)) {
+            if (_client.SendSecure(InputField.Text)) {
                 InputField.Clear();
                 InputField.Focus();
             }
@@ -91,8 +95,8 @@ namespace CNA_Client {
 
         private void ChangeName_Button_Click(object sender, EventArgs e) {
             if(ChangeName_textbox.TextLength > 0) {
-                if (_client.TcpSendPacket(new ClientNamePacket(ChangeName_textbox.Text) 
-                { _packetSrc = _client._nick })) {
+                if (_client.Send(new ClientNamePacket(ChangeName_textbox.Text) 
+                    { _packetSrc = _client._nick })) {
                     ChangeName_textbox.Clear();
                     InputField.Focus();
                 }
@@ -109,7 +113,7 @@ namespace CNA_Client {
 
         private void Client_WinForm_FormClosing(object sender, FormClosingEventArgs e) {
             // notify server of closing
-            _client.TcpSendPacket(new EndSessionPacket());
+            _client.Send(new EndSessionPacket());
 
         }
 
@@ -122,7 +126,7 @@ namespace CNA_Client {
                 _packetSrc = _client._nick
             };
 
-            _client.TcpSendPacket(joinGame);
+            _client.Send(joinGame);
         }
     }
 }

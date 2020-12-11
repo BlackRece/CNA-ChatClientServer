@@ -230,6 +230,41 @@ namespace CNA_Server {
                             // if list is filled, why is it here?!
 
                             break;
+                        case Packet.PacketType.LEAVEGAME:
+                            LeaveGamePacket leaveGame = (LeaveGamePacket)receivedPacket;
+
+                            // check game sessions
+                            bool wasHost = GameSession.Instance.IsHosting(client);
+
+                            // update game session
+                            List<string> players = GameSession.Instance.LeaveSession(ref client);
+
+                            ServerMessagePacket serverMessage = null;
+
+                            if (!leaveGame._wasForced) {
+                                serverMessage = new ServerMessagePacket
+                                    (client._name + " has left the game.", null);
+                            } else {
+                                serverMessage = new ServerMessagePacket
+                                    ("GAME ERROR: " + client._name + " was forced to leave the game.", null);
+                            }
+
+                            foreach (Client user in _clients.Values) {
+                                if (players.Contains(user._name)) {
+                                    user.TcpSend(serverMessage);
+                                }
+                            }
+
+                            if (wasHost) {
+                                leaveGame._wasForced = true;
+
+                                foreach(Client user in _clients.Values) {
+                                    user.TcpSend(leaveGame);
+                                }
+                            }
+
+                            break;
+
                         default:
                             break;
                     }

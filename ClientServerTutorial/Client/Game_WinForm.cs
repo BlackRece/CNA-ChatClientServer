@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Packets;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -20,6 +21,20 @@ namespace CNA_Client {
 
         private void Game_WinForm_Activated(object sender, EventArgs e) {
             gameControl1._client = _client;
+        }
+
+        private void Game_WinForm_Deactivate(object sender, EventArgs e) {
+        }
+
+        private void Game_WinForm_FormClosing(object sender, FormClosingEventArgs e) {
+            bool reason = false;
+            if (
+                e.CloseReason == CloseReason.None ||
+                e.CloseReason == CloseReason.WindowsShutDown ||
+                e.CloseReason == CloseReason.TaskManagerClosing
+                ) reason = true;
+            
+            _client.Send(new LeaveGamePacket(reason) { _packetSrc = _client._nick });
         }
     }
 }

@@ -16,11 +16,15 @@ namespace Packets {
             USERLIST,
             SECUREMESSAGE,
             ENDSESSION,
-            JOINGAME
+            JOINGAME,
+            LEAVEGAME
         }
 
         public PacketType _packetType { get; protected set; }
         public string _packetSrc { get; set; }
+
+        //TODO: set these for all non generic packet types
+        public bool _isSecure { get; protected set; }
     }
 
     [Serializable]
@@ -28,6 +32,7 @@ namespace Packets {
         public string _message;
 
         public ChatMessagePacket(string message) {
+            _isSecure = true;
             _message = message;
 
             _packetType = PacketType.CHATMESSAGE;
@@ -40,6 +45,7 @@ namespace Packets {
         public string _target;
 
         public PrivateMessagePacket(string target, string message) {
+            _isSecure = true;
             _message = message;
             _target = target;
 
@@ -64,6 +70,7 @@ namespace Packets {
         public string _message;
 
         public ErrorMessagePacket(string message) {
+            _isSecure = true;
             _message = message;
 
             _packetType = PacketType.ERROR;
@@ -76,6 +83,7 @@ namespace Packets {
         public string _messageRecv;
 
         public ServerMessagePacket(string messageSent, string messageReceived) {
+            //_isSecure = true;
             _messageSent = messageSent;
             _messageRecv = messageReceived;
 
@@ -89,6 +97,7 @@ namespace Packets {
 
         public UserListPacket(string[] users) {
             _users = users;
+
             _packetType = PacketType.USERLIST;
         }
     }
@@ -111,7 +120,21 @@ namespace Packets {
         public byte[] _data;
 
         public SecurePacket(byte[] data) {
+            _isSecure = true;
             _data = data;
+
+            _packetType = PacketType.SECUREMESSAGE;
+        }
+    }
+
+    [Serializable]
+    public class SecuredPacket : Packet {
+        public byte[] _data;
+        public PacketType _type;
+
+        public SecuredPacket(PacketType type, byte[] data) {
+            _data = data;
+            _type = type;
 
             _packetType = PacketType.SECUREMESSAGE;
         }
@@ -129,7 +152,18 @@ namespace Packets {
         public string _targetHost;
         public JoinGamePacket(string host) {
             _targetHost = host;
+
             _packetType = PacketType.JOINGAME;
+        }
+    }
+
+    [Serializable]
+    public class LeaveGamePacket : Packet {
+        public bool _wasForced;
+        public LeaveGamePacket(bool wasForced) {
+            _wasForced = wasForced;
+
+            _packetType = PacketType.LEAVEGAME;
         }
     }
 }

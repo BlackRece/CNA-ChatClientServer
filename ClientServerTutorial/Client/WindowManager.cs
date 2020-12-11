@@ -18,6 +18,8 @@
 
         public string[] UserList {
             set {
+                if (!IsReady) return;
+
                 if (value.Length < 1)
                     return;
 
@@ -27,6 +29,8 @@
                     _win.UpdateUserList(value);
             }
         }
+
+        public bool _isReady;
 
         public bool IsReady {
             get {
@@ -43,6 +47,7 @@
                 return result;
             }
         }
+
         private bool _isRunning;
         public bool IsRunning { get { return _isRunning; } }
 
@@ -55,11 +60,22 @@
             if (choice == "1") {
                 _isWPF = false;
                 _win = new Client_WinForm(client);
-                _win.ShowDialog();
+                _isReady = true;
+                
             } else {
                 _isWPF = true;
                 _wpf = new Client_WPFForm(client);
+                _isReady = true;
+            }
+        }
+
+        public void ShowWin() {
+            if (_isWPF) {
                 _wpf.ShowDialog();
+                _isReady = false;
+            } else {
+                _win.ShowDialog();
+                _isReady = false;
             }
         }
 
@@ -75,6 +91,14 @@
             }
 
             return result;
+        }
+
+        public void StopGame() {
+            if(_isRunning) {
+                _winGame.Dispose();
+                _isRunning = false;
+                _winGame = null;
+            }
         }
 
         public void UpdateChat(string message) {

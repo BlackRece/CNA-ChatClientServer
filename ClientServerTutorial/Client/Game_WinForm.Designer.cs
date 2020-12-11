@@ -89,6 +89,8 @@
             this.Name = "Game_WinForm";
             this.Text = "Game_WinForm";
             this.Activated += new System.EventHandler(this.Game_WinForm_Activated);
+            this.Deactivate += new System.EventHandler(this.Game_WinForm_Deactivate);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Game_WinForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
