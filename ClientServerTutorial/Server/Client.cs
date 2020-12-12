@@ -29,25 +29,12 @@ namespace CNA_Server {
         BinaryReader _reader;
         BinaryWriter _writer;
 
-        BinaryFormatter _formatter;
-
         object _readLock;
         object _writeLock;
 
         private Secure _crypt;
-        /*
-        RSACryptoServiceProvider _RSAProvider;
-        private RSAParameters _publicKey;
-        private RSAParameters _privateKey;
-        private RSAParameters _clientKey;
-        */
-
+        
         public Client(Socket socket) {
-            /*
-            _RSAProvider = new RSACryptoServiceProvider(2048);
-            _publicKey = _RSAProvider.ExportParameters(false);
-            _privateKey = _RSAProvider.ExportParameters(true);
-            */
             _crypt = new Secure();
 
             _readLock = new object();
@@ -56,12 +43,9 @@ namespace CNA_Server {
             _socket = socket;
 
             _stream = new NetworkStream(_socket);
-            _formatter = new BinaryFormatter();
+
             _reader = new BinaryReader(_stream);
             _writer = new BinaryWriter(_stream);
-
-            //_endPoint = _socket.RemoteEndPoint as IPEndPoint;
-            //_name = _port.ToString();
         }
 
         ~Client() {
@@ -78,19 +62,6 @@ namespace CNA_Server {
             _writer = null;
         }
 
-        /*
-        private byte[] Decrypt(byte[] data) {
-
-        }
-
-        private string DecryptString(byte[] message) { }
-        private byte[] Encrypt(byte[] data) {
-
-        }
-
-        private byte[] EncryptString(string message) { }
-        */
-
         public Packet TcpRead() {
             lock (_readLock) {
                 int numberOfBytes;
@@ -99,34 +70,18 @@ namespace CNA_Server {
                 if (_reader == null)
                     return packet;
 
-                //packet = new Packet();
-
-                //1 check reader and store returned val
+                // check reader and store returned val
                 if ((numberOfBytes = _reader.ReadInt32()) != -1) {
-                    //2 store bytes 
-                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
-
-                    //3 create stream
-                    MemoryStream memStream = new MemoryStream(buffer);
-
-                    //4 return packet
-                    packet = _formatter.Deserialize(memStream) as Packet;
+                    packet = Serialiser.Deserialise(_reader.ReadBytes(numberOfBytes));
                 }
+
                 return packet;
             }
         }
 
         public void TcpSend(Packet packet) {
             lock(_writeLock) {
-                //1 create obj
-                MemoryStream memStream = new MemoryStream();
-
-                //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, packet);
-
-                //3 get byte array
-                byte[] buffer = memStream.GetBuffer(); //large but guaranteed file size
-                // use ToArray() = volatile file size
+                byte[] buffer = Serialiser.Serialise(packet);
 
                 //4 write length
                 _writer.Write(buffer.Length);
@@ -140,11 +95,7 @@ namespace CNA_Server {
         }
 
         public void UdpSend(Packet packet, ref UdpClient udpClient) {
-            MemoryStream memStream = new MemoryStream();
-
-            _formatter.Serialize(memStream, packet);
-
-            byte[] buffer = memStream.GetBuffer();
+            byte[] buffer = Serialiser.Serialise(packet);
 
             udpClient.Send(buffer, buffer.Length, _endPoint);
         }

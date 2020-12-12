@@ -151,16 +151,11 @@ namespace CNA_Server {
                             // receive packet
                             SecurePacket safePacket = (SecurePacket)receivedPacket;
 
-                            // decrypt message from secure packet and store...
-                            ChatMessagePacket rawPacket = new ChatMessagePacket(
-                                client.GetSecureMessage(safePacket)
-                            );
-
-                            // set packet author
-                            rawPacket._packetSrc = client._name;
-
                             // transmit packet
-                            TcpSecureRespondToAll(rawPacket);
+                            TcpSecureRespondToAll(
+                                client.GetSecureMessage(safePacket),
+                                safePacket._packetSrc
+                            );
 
                             break;
 
@@ -314,13 +309,13 @@ namespace CNA_Server {
             }
         }
 
-        void TcpSecureRespondToAll(ChatMessagePacket rawPacket) {
-            SecurePacket safePacket = new SecurePacket(null);
-
+        void TcpSecureRespondToAll(string message, string src) {
             foreach (KeyValuePair<int, Client> pair in _clients) {
-                // encrypt packet
-                safePacket._data = pair.Value.SetSecureMessage(rawPacket._message);
-
+                // encrypt message
+                SecurePacket safePacket = 
+                    new SecurePacket(pair.Value.SetSecureMessage(message)) {
+                        _packetSrc = src
+                };
                 pair.Value.TcpSend(safePacket);
             }
         }
