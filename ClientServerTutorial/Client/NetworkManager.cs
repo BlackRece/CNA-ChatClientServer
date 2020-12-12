@@ -28,9 +28,6 @@ namespace CNA_Client {
         public bool IsTcpConnected { get { return _tcpClient.Connected; } }
         public bool IsUdpConnected { get { return _udpClient.Client.Connected; } }
 
-        public Packet UdpReceive 
-            { get { return UdpReadPacket(_udpClient.Receive(ref _endPoint)); }  }
-
         public NetworkManager(ref string name) {
             _crypt = new Secure();
             name = _crypt.PublicKey.GetHashCode().ToString();
@@ -88,10 +85,7 @@ namespace CNA_Client {
             try {
                 // check reader and store return val
                 if ((numberOfBytes = _reader.ReadInt32()) > 0) {
-                    byte[] buffer = _reader.ReadBytes(numberOfBytes);
-                    MemoryStream memStream = new MemoryStream(buffer);
-                    packet = new Packet();
-                    packet = _formatter.Deserialize(memStream) as Packet;
+                    packet = Serialiser.Deserialise(_reader.ReadBytes(numberOfBytes));
                 }
             } catch (Exception e) {
                 Console.WriteLine("Error: " + e.Message);
@@ -102,24 +96,11 @@ namespace CNA_Client {
 
         public bool TcpSendPacket(Packet packet) {
             bool result = false;
-            //if (_writer.BaseStream.CanSeek) {
-            if (_writer != null) {
-                //1 create obj
-                MemoryStream memStream = new MemoryStream();
-
-                //2 serialise packet and store in memoryStream
-                _formatter.Serialize(memStream, packet);
-
-                //3 get byte array
-                byte[] buffer = memStream.GetBuffer();
-
-                //4 write length
+            if (_writer.BaseStream.CanWrite) {
+                byte[] buffer = Serialiser.Serialise(packet);
+                
                 _writer.Write(buffer.Length);
-
-                //5 write buffer
                 _writer.Write(buffer);
-
-                //6 flush
                 _writer.Flush();
 
                 result = true;
@@ -139,23 +120,13 @@ namespace CNA_Client {
 
         #region UDP related methods
 
-        public Packet UdpReadPacket(byte[] buffer) {
-
-            MemoryStream memStream = new MemoryStream(buffer);
-            return _formatter.Deserialize(memStream) as Packet;
+        public Packet UdpReadPacket() {
+            return Serialiser.Deserialise(_udpClient.Receive(ref _endPoint));
         }
 
         public bool UdpSendPacket(Packet packet) {
-            //1 create obj
-            MemoryStream memStream = new MemoryStream();
+            byte[] buffer = Serialiser.Serialise(packet);
 
-            //2 serialise packet and store in memoryStream
-            _formatter.Serialize(memStream, packet);
-
-            //3 get byte array
-            byte[] buffer = memStream.GetBuffer();
-
-            //4 send packet
             int result = _udpClient.Send(buffer, buffer.Length);
 
             return result > 0;

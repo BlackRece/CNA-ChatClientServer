@@ -163,7 +163,7 @@ namespace CNA_Client {
             Debug("UdpProcessServerPacket");
             try {
                 while(_net.IsUdpConnected) {
-                    Packet packet = _net.UdpReceive;
+                    Packet packet = _net.UdpReadPacket();
 
                     switch (packet._packetType) {
                         case Packet.PacketType.EMPTY:
