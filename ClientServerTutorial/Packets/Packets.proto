@@ -61,7 +61,7 @@ message AllPackets {
 
     //Protobuf cant handle structs without the struct's definition
     message LoginPacket {
-        repeated byte pkt = 1;
+        repeated bytes pkt = 1;
     /*
         required IPEndPoint _endPoint;
         required RSAParameters _clientKey;
@@ -76,12 +76,12 @@ message AllPackets {
     }
 
     message SecurePacket {
-        repeated byte _data = 1;
+        repeated bytes _data = 1;
     }
 
     message SecuredPacket {
-        repeated byte _data = 1;
-        required PacketType _type = 2;
+        repeated bytes _data = 1;
+        required int32 _type = 2;
     }
 
     message EndSessionPacket {
