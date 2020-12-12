@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace CNA_Client {
     class NetworkManager {
+        private const bool DEBUG = true;
+
         IPEndPoint _endPoint = new IPEndPoint(IPAddress.Any, 0);
 
         UdpClient _udpClient;
@@ -87,8 +89,10 @@ namespace CNA_Client {
                 if ((numberOfBytes = _reader.ReadInt32()) > 0) {
                     packet = Serialiser.Deserialise(_reader.ReadBytes(numberOfBytes));
                 }
+            } catch (System.Threading.ThreadAbortException) {
+                // expected exception since app is being closed
             } catch (Exception e) {
-                Console.WriteLine("Error: " + e.Message);
+                Console.WriteLine("TcpReadPacket Error: " + e.Message);
             }
 
             return packet;
@@ -121,7 +125,15 @@ namespace CNA_Client {
         #region UDP related methods
 
         public Packet UdpReadPacket() {
-            return Serialiser.Deserialise(_udpClient.Receive(ref _endPoint));
+            Packet result = null;
+            try { 
+                result = Serialiser.Deserialise(_udpClient.Receive(ref _endPoint));
+            } catch (System.Threading.ThreadAbortException) {
+                // expected exception since app is being closed
+            } catch (Exception e) {
+                Debug("UdpReadPacket Error: " + e.Message);
+            }
+            return result;
         }
 
         public bool UdpSendPacket(Packet packet) {
@@ -156,5 +168,8 @@ namespace CNA_Client {
         }
 
         #endregion
+        private void Debug(string msg) {
+            if (DEBUG) Console.WriteLine("Client - " + msg);
+        }
     }
 }

@@ -21,6 +21,9 @@ namespace CNA_Client {
 
         public string _nick;
 
+        Thread _tcpThread;
+        Thread _udpThread;
+
         public Client() {
             _net = new NetworkManager(ref _nick);
         }
@@ -45,11 +48,13 @@ namespace CNA_Client {
             _win = new WindowManager(choice, this);
 
             // start network worker threads
-            Thread tcpThread = new Thread(() => TcpProcessServerPacket());
-            tcpThread.Start();
+            _tcpThread = new Thread(() => TcpProcessServerPacket());
+            _tcpThread.Name = "TCP-Thread";
+            _tcpThread.Start();
 
-            Thread udpThread = new Thread(() => UdpProcessServerPacket());
-            udpThread.Start();
+            _udpThread = new Thread(() => UdpProcessServerPacket());
+            _udpThread.Name = "UDP-Thread";
+            _udpThread.Start();
 
             // login to server
             _net.TcpBeginLogin(_nick);
@@ -58,7 +63,22 @@ namespace CNA_Client {
             _win.ShowWin();         // this blocks the thread until window is closed
 
             // clean up connections before exit
+            Close();
+
+            Debug("Client successfully terminated.");
+            _ = Console.ReadLine();
+        }
+
+        public void Close() {
+            // stop network connections
             _net.Close();
+
+            // stop threads
+            Debug("Close: stopping _tcpThread = " + _tcpThread.ThreadState);
+            _tcpThread.Abort("Closing Client");
+
+            Debug("Close: stopping " + _udpThread.Name + " [" + _udpThread.ThreadState + "]");
+            _udpThread.Abort("Closing Client");
         }
 
         #region Tcp/Udp Transmit Methods
@@ -93,7 +113,9 @@ namespace CNA_Client {
             Packet packet = new Packet();
 
             while(_net.IsTcpConnected) {
+                
                 packet = _net.TcpReadPacket();
+                
                 Debug("TcpProcessServerPacket: packet = " + packet);
 
                 if(packet != null) {

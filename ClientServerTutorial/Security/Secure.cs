@@ -44,7 +44,15 @@ namespace Security
 
         public string DecryptString(byte[] message) {
             byte[] data = Decrypt(message);
-            string result = Encoding.UTF8.GetString(data);
+
+            string result;
+
+            if (data == message) {
+                result = "Unable to decrypt message, sorry.";
+            } else {
+                result = Encoding.UTF8.GetString(data);
+            }
+
             return result;
         }
 
