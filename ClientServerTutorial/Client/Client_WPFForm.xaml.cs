@@ -29,8 +29,9 @@ namespace CNA_Client {
         }
 
         private void GetUserList() {
-            _client.Send(new UserListPacket(null)
-                {_packetSrc = _client._nick});
+            if(CNA_Client_WPFForm.IsActive)
+                _client.Send(new UserListPacket(null)
+                    {_packetSrc = _client._nick});
             
         }
 

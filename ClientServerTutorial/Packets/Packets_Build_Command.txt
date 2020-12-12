@@ -1,0 +1,4 @@
+﻿C:\Users\Maurice\.nuget\packages\google.protobuf.tools\3.14.0\tools\windows_x64\protoc --csharp_out=proto Packets.proto
+
+# creates "Packets.cs" in the "proto" folder of the current directory
+# NOTE: will silently overwrite existing files of the same name!

@@ -14,10 +14,10 @@ namespace Security
         private object _decrypt;
 
         RSACryptoServiceProvider _RSAProvider;
-        private RSAParameters _privateKey;
-        private RSAParameters _publicKey;
+        private RSAParameters _privateKey;          // decrypt incoming data from someone
+        private RSAParameters _publicKey;           // someone else to encrypt data to come to me
         public RSAParameters PublicKey { get { return _publicKey; } }
-        public RSAParameters ExternalKey;
+        public RSAParameters ExternalKey;           // to encrypt data going to someone
 
         public Secure() {
             _RSAProvider = new RSACryptoServiceProvider(1024);

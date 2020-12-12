@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace CNA_Client {
     public class Client {
+        const bool DEBUG = true;
 
         private NetworkManager _net;
         private WindowManager _win;
@@ -70,7 +71,7 @@ namespace CNA_Client {
             else
                 result = _net.UdpSendPacket(packet);
 
-            return false;
+            return result;
         }
 
         public bool SendSecure(string message, bool viaTcp = true) {
@@ -93,6 +94,8 @@ namespace CNA_Client {
 
             while(_net.IsTcpConnected) {
                 packet = _net.TcpReadPacket();
+                Debug("TcpProcessServerPacket: packet = " + packet);
+
                 if(packet != null) {
 
                     switch (packet._packetType) {
@@ -152,11 +155,12 @@ namespace CNA_Client {
                             _win.UpdateChat(serverMessage._messageSent);
                             break;
                     }
-                }
+                } 
             }
         }
 
         private void UdpProcessServerPacket() {
+            Debug("UdpProcessServerPacket");
             try {
                 while(_net.IsUdpConnected) {
                     Packet packet = _net.UdpReceive;
@@ -190,6 +194,8 @@ namespace CNA_Client {
         }
 
         #endregion
-
+        private void Debug(string msg) {
+            if (DEBUG) Console.WriteLine("Client - " + msg);
+        }
     }
 }

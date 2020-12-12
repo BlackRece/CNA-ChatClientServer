@@ -89,8 +89,6 @@ namespace CNA_Server {
                 while ((receivedPacket = client.TcpRead()) != null) {
                     Console.Write("TCP Receieved: ");
 
-                    
-
                     // act on packet type
                     switch (receivedPacket._packetType) {
                         case Packet.PacketType.EMPTY:

@@ -102,6 +102,8 @@ namespace Packets {
         }
     }
 
+    //Protobuf cant handle structs without the struct's definition
+    //therefore send as a byte array (cheat)!
     [Serializable]
     public class LoginPacket : Packet {
         public IPEndPoint _endPoint;

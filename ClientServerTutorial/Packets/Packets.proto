@@ -1,0 +1,98 @@
+﻿syntax = "proto2";
+
+option csharp_namespace = "Packets.Protobus";
+
+package packets_protobus_all_packets;
+
+message AllPackets {
+    required int32 _type = 1;           //PacketType
+    required string _src = 2;           //packetSrc
+    required bool _safe = 3;            //isSecure
+
+    /*NOTE:
+    because of "oneof..." the inclusion of "PacketType"
+    is no longer need as the packet type can be
+    discovered from which ever "oneof" is defined.
+    This means this could be smaller.
+    */
+
+    oneof packet {
+        ChatMessagePacket chat = 4;
+        PrivateMessagePacket private = 5;
+        ClientNamePacket client = 6;
+        ErrorMessagePacket error = 7;
+        ServerMessagePacket server = 8;
+        UserListPacket userlist = 9;
+        LoginPacket login = 10;
+        SecurePacket secure = 11;
+        SecuredPacket secured = 12;
+        EndSessionPacket endsession = 13;
+        JoinGamePacket joingame = 14;
+        LeaveGamePacket leavegame = 15;
+    }
+
+    /* inherited packet types */
+    message ChatMessagePacket {
+        required string _message = 1;
+    }
+
+    message PrivateMessagePacket {
+        required string _message = 1;
+        required string _target = 2;
+    }
+
+    message ClientNamePacket {
+        required string _name = 1;
+        required string _message = 2;
+    }
+
+    message ErrorMessagePacket {
+        required string _message = 1;
+    }
+
+    message ServerMessagePacket {
+        required string _messageSent = 1;
+        required string _messageRecv = 2;
+    }
+
+    message UserListPacket {
+        repeated string _users = 1;
+    }
+
+    //Protobuf cant handle structs without the struct's definition
+    message LoginPacket {
+        repeated byte pkt = 1;
+    /*
+        required IPEndPoint _endPoint;
+        required RSAParameters _clientKey;
+        required RSAParameters _serverKey;
+
+        required LoginPacket(IPEndPoint endPoint) {
+            _endPoint = endPoint;
+
+            _packetType = PacketType.LOGIN;
+        }
+    */
+    }
+
+    message SecurePacket {
+        repeated byte _data = 1;
+    }
+
+    message SecuredPacket {
+        repeated byte _data = 1;
+        required PacketType _type = 2;
+    }
+
+    message EndSessionPacket {
+        /* nothing! */
+    }
+
+    message JoinGamePacket {
+        required string _targetHost = 1;
+    }
+
+    message LeaveGamePacket {
+        required bool _wasForced = 1;
+    }
+}
