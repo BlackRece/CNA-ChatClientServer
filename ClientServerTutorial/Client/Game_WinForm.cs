@@ -20,7 +20,8 @@ namespace CNA_Client {
         }
 
         private void Game_WinForm_Activated(object sender, EventArgs e) {
-            gameControl1._client = _client;
+            gameControl1.SetName(_client._nick);
+            gameControl1.Focus();
         }
 
         private void Game_WinForm_Deactivate(object sender, EventArgs e) {
