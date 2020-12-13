@@ -8,6 +8,8 @@ namespace Packets {
     public static class Serialiser {
         private const bool DEBUG = true;
 
+        /* USE ZLIB COMPRESSION!!! */
+
         private static BinaryFormatter _formatter;
         private static MemoryStream _memStream;
 

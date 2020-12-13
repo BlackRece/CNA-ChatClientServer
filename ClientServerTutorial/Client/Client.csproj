@@ -114,6 +114,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\InvadersGame\InvadersGame.csproj">
+      <Project>{b2db26bf-8d22-48fe-a02e-7560eb66ed45}</Project>
+      <Name>InvadersGame</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Packets\Packets.csproj">
       <Project>{f14ce456-1972-4b78-b064-7a3b14d1a62a}</Project>
       <Name>Packets</Name>
