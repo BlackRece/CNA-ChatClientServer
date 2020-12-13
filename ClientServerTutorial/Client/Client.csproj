@@ -80,6 +80,7 @@
     <Compile Include="Client_WPFForm.xaml.cs">
       <DependentUpon>Client_WPFForm.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ControlHost.cs" />
     <Compile Include="GameControler.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -92,6 +93,9 @@
     <Compile Include="NetworkManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnityGameTest.xaml.cs">
+      <DependentUpon>UnityGameTest.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +113,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Client_WPFForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UnityGameTest.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

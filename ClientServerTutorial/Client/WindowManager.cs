@@ -54,7 +54,8 @@
         private Client_WinForm _win;
         private Client_WPFForm _wpf;
 
-        private Game_WinForm _winGame;
+        //private Game_WinForm _winGame;
+        private UnityGameTest _winGame;
         
         public WindowManager(string choice, Client client) {
             if (choice == "1") {
@@ -84,7 +85,8 @@
 
             if(!_isRunning) {
                 _isRunning = true;
-                _winGame = new Game_WinForm(client);
+                //_winGame = new Game_WinForm(client);
+                _winGame = new UnityGameTest();
                 _winGame.ShowDialog();
                 _isRunning = false;
                 _winGame = null;
@@ -95,7 +97,8 @@
 
         public void StopGame() {
             if(_isRunning) {
-                _winGame.Dispose();
+                //_winGame.Dispose();
+                _winGame.Close();
                 _isRunning = false;
                 _winGame = null;
             }
