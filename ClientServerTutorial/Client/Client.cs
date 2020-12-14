@@ -31,7 +31,8 @@ namespace CNA_Client {
         public bool Connect(string ipAddress, int port) {
             return _net.TcpConnect(ipAddress, port);
         }
-               
+
+        [STAThread]
         public void Run() {
             // select window type
             Console.WriteLine(
@@ -109,6 +110,7 @@ namespace CNA_Client {
 
         #region Tcp/Udp Receive Methods
 
+        [STAThread]
         private void TcpProcessServerPacket() {
             Packet packet = new Packet();
 
