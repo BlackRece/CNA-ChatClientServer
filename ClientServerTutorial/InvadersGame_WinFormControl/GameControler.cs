@@ -61,21 +61,29 @@ namespace InvadersGame_WinFormControl {
         GameTime _gameTime;
         public string GetTime {
             get {
-                return _gameTime.ElapsedGameTime.ToString();
+                //return _gameMS.ToString();
+                return _gameTime.ElapsedGameTime.TotalMilliseconds.ToString();
             }
         }
 
-        //public Client _client;
+        public string tempStr;
         Texture2D temp;
+        int tempDir;
+        Vector2 tempPos;
+
         KeyboardState keyState;
         public PlayerObject _player;
 
         int gameTicks = 0;
         public GameControler() {
+            _gameTime = new GameTime();
+
             _gameTimer = new Timer(1);
             _gameTimer.AutoReset = true;
             _gameTimer.Elapsed += OnTickEvent;
             _gameMS = 0;
+
+            tempDir = 1;
         }
 
         private void OnTickEvent(Object src, ElapsedEventArgs e) {
@@ -83,10 +91,8 @@ namespace InvadersGame_WinFormControl {
         }
 
         private void UpdateTimer() {
-            /*
             if (!_gameTimer.Enabled)
                 _gameTimer.Start();
-            */
             _gameMS = 0;
         }
 
@@ -94,7 +100,7 @@ namespace InvadersGame_WinFormControl {
             _gameTimer.Dispose();
         }
 
-        public void On_KeyDown(System.Windows.Forms.KeyEventArgs e) {
+        public void On_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e) {
             switch (e.KeyCode) {
                 case System.Windows.Forms.Keys.W:
                     _player.MoveY(-1, _gameMS);
@@ -133,7 +139,6 @@ namespace InvadersGame_WinFormControl {
             }
 
         }
-
         
         protected override void Initialize() {
             // TODO: Add your initialization logic here
@@ -150,6 +155,7 @@ namespace InvadersGame_WinFormControl {
             keyState = Keyboard.GetState();
 
             LoadContent();
+
         }
 
         protected void LoadContent() {
@@ -181,8 +187,9 @@ namespace InvadersGame_WinFormControl {
             base.Update(gameTime);
 
             //get deltaTime from timer
-            //_gameTime = gameTime;
-            
+            _gameTime = gameTime;
+            UpdateTimer();
+
             //update game ticks every update
             /*
              * get milliseconds
@@ -191,14 +198,24 @@ namespace InvadersGame_WinFormControl {
              *      reset 
              */
 
+            if(tempPos.X < 10) {
+                tempPos.X = 10;
+                tempDir = 1;
+            }
+
+            if(tempPos.X > Editor.graphics.Viewport.Width - 10) {
+                tempPos.X = Editor.graphics.Viewport.Width - 10;
+                tempDir = -1;
+            }
+
+            tempPos.X += tempDir;
+
             //raise update event
             GameControlerUpdateEventArgs args = new GameControlerUpdateEventArgs();
             args.ElapsedMilliseconds = _gameMS;
             //args.ElapsedMilliseconds = (float)_gameTime.ElapsedGameTime.TotalMilliseconds;
             //args.ElapsedTicks = (float)_gameTime.ElapsedGameTime.Ticks;
             OnGameControlerUpdate(args);
-
-
         }
 
         protected override void Draw() {
@@ -218,9 +235,12 @@ namespace InvadersGame_WinFormControl {
                     Color.White
                 );
             */
+            Editor.spriteBatch.DrawString(
+                Editor.Font, tempStr, tempPos, Color.White
+            );
 
             if (temp != null) {
-                Editor.spriteBatch.Draw(temp, new Vector2(0, 0), Color.White);
+                Editor.spriteBatch.Draw(temp, tempPos, Color.White);
             }
 
             // draw player

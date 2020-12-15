@@ -58,7 +58,7 @@ namespace InvadersGame_WinFormControl
         }
 
         private void On_KeyDown(object sender, KeyEventArgs e) {
-            gameControler.On_KeyDown(e);
+            gameControler.On_KeyDown(sender, e);
         }
     }   // End Class
 }   // End namespace

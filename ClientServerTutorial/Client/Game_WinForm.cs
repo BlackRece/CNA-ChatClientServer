@@ -15,11 +15,30 @@ namespace CNA_Client {
     public partial class Game_WinForm : Form {
         Client _client;
 
+        private InvadersGame_WinFormControl.GameControler gameControler;
+
         public Game_WinForm(Client client) {
             //public Game_WinForm(Client client) {
             _client = client;
+
+            {
+                this.gameControler = new InvadersGame_WinFormControl.GameControler();
+                // 
+                // gameControler1
+                // 
+                this.gameControler._ticks = 0F;
+                this.gameControler.Location = new System.Drawing.Point(174, 12);
+                this.gameControler.MouseHoverUpdatesOnly = false;
+                this.gameControler.Name = "gameControler";
+                this.gameControler.Size = new System.Drawing.Size(614, 426);
+                this.gameControler.TabIndex = 0;
+                this.gameControler.tempStr = client._nick;
+                this.gameControler.Text = "gameControler";
+                this.gameControler.KeyDown += new KeyEventHandler(this.gameControler.On_KeyDown);
+                this.Controls.Add(this.gameControler);
+            }
+
             InitializeComponent();
-            //invadersGameControl1.gameControler.GameControlerUpdate += OnGameControlerUpdate;
         }
 
         private void OnGameControlerUpdate(object sender, GameControler.GameControlerUpdateEventArgs e) {
@@ -34,6 +53,7 @@ namespace CNA_Client {
         }
 
         private void Game_WinForm_Deactivate(object sender, EventArgs e) {
+            gameControler.Focus();
         }
 
         private void Game_WinForm_FormClosing(object sender, FormClosingEventArgs e) {
@@ -48,8 +68,8 @@ namespace CNA_Client {
         }
 
         private void ShowPlayerPos(object sender, EventArgs e) {
-            MessageWindow.Text += Environment.NewLine + gameControler1.GetPos;
-            InputField.Text = gameControler1.GetTime;
+            MessageWindow.Text += Environment.NewLine + gameControler.GetPos;
+            InputField.Text = gameControler.GetTime;
         }
 
         private void Game_WinForm_Load(object sender, EventArgs e) {
@@ -57,7 +77,12 @@ namespace CNA_Client {
         }
 
         private void On_KeyDown(object sender, KeyEventArgs e) {
-            gameControler1.On_KeyDown(e);
+            gameControler.On_KeyDown(sender, e);
+        }
+
+        private void ShowPlayerPos(object sender, InvadersGame_WinFormControl.GameControler.GameControlerUpdateEventArgs e) {
+            MessageWindow.Text += Environment.NewLine + gameControler.GetPos;
+            InputField.Text = gameControler.GetTime;
         }
     }
 }

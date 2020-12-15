@@ -29,7 +29,6 @@
             this.MessageWindow = new System.Windows.Forms.TextBox();
             this.InputField = new System.Windows.Forms.TextBox();
             this.GameUpdateTextbox = new System.Windows.Forms.TextBox();
-            this.gameControler1 = new InvadersGame_WinFormControl.GameControler();
             this.SuspendLayout();
             // 
             // ExitButton
@@ -56,6 +55,7 @@
             this.MessageWindow.Location = new System.Drawing.Point(12, 12);
             this.MessageWindow.Multiline = true;
             this.MessageWindow.Name = "MessageWindow";
+            this.MessageWindow.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.MessageWindow.Size = new System.Drawing.Size(156, 274);
             this.MessageWindow.TabIndex = 3;
             this.MessageWindow.Text = "MessageWindow";
@@ -78,23 +78,11 @@
             this.GameUpdateTextbox.TabIndex = 6;
             this.GameUpdateTextbox.Text = "textBox1";
             // 
-            // gameControler1
-            // 
-            this.gameControler1._ticks = 0F;
-            this.gameControler1.Location = new System.Drawing.Point(174, 12);
-            this.gameControler1.MouseHoverUpdatesOnly = false;
-            this.gameControler1.Name = "gameControler1";
-            this.gameControler1.Size = new System.Drawing.Size(614, 426);
-            this.gameControler1.TabIndex = 7;
-            this.gameControler1.Text = "gameControler1";
-            this.gameControler1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.On_KeyDown);
-            // 
             // Game_WinForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.gameControler1);
             this.Controls.Add(this.GameUpdateTextbox);
             this.Controls.Add(this.InputField);
             this.Controls.Add(this.MessageWindow);
@@ -118,6 +106,5 @@
         private System.Windows.Forms.TextBox MessageWindow;
         private System.Windows.Forms.TextBox InputField;
         private System.Windows.Forms.TextBox GameUpdateTextbox;
-        private InvadersGame_WinFormControl.GameControler gameControler1;
     }
 }
