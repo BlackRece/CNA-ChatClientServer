@@ -28,7 +28,8 @@
             this.SubmitButton = new System.Windows.Forms.Button();
             this.MessageWindow = new System.Windows.Forms.TextBox();
             this.InputField = new System.Windows.Forms.TextBox();
-            this.gameControl1 = new CNA_Client.GameControler();
+            this.GameUpdateTextbox = new System.Windows.Forms.TextBox();
+            this.gameControler1 = new InvadersGame_WinFormControl.GameControler();
             this.SuspendLayout();
             // 
             // ExitButton
@@ -48,13 +49,14 @@
             this.SubmitButton.TabIndex = 2;
             this.SubmitButton.Text = "Submit";
             this.SubmitButton.UseVisualStyleBackColor = true;
+            this.SubmitButton.Click += new System.EventHandler(this.ShowPlayerPos);
             // 
             // MessageWindow
             // 
             this.MessageWindow.Location = new System.Drawing.Point(12, 12);
             this.MessageWindow.Multiline = true;
             this.MessageWindow.Name = "MessageWindow";
-            this.MessageWindow.Size = new System.Drawing.Size(156, 346);
+            this.MessageWindow.Size = new System.Drawing.Size(156, 274);
             this.MessageWindow.TabIndex = 3;
             this.MessageWindow.Text = "MessageWindow";
             // 
@@ -67,21 +69,33 @@
             this.InputField.TabIndex = 4;
             this.InputField.Text = "InputField";
             // 
-            // gameControl1
+            // GameUpdateTextbox
             // 
-            this.gameControl1.Location = new System.Drawing.Point(174, 12);
-            this.gameControl1.MouseHoverUpdatesOnly = false;
-            this.gameControl1.Name = "gameControl1";
-            this.gameControl1.Size = new System.Drawing.Size(614, 426);
-            this.gameControl1.TabIndex = 5;
-            this.gameControl1.Text = "gameControl1";
+            this.GameUpdateTextbox.Location = new System.Drawing.Point(12, 292);
+            this.GameUpdateTextbox.Multiline = true;
+            this.GameUpdateTextbox.Name = "GameUpdateTextbox";
+            this.GameUpdateTextbox.Size = new System.Drawing.Size(156, 66);
+            this.GameUpdateTextbox.TabIndex = 6;
+            this.GameUpdateTextbox.Text = "textBox1";
+            // 
+            // gameControler1
+            // 
+            this.gameControler1._ticks = 0F;
+            this.gameControler1.Location = new System.Drawing.Point(174, 12);
+            this.gameControler1.MouseHoverUpdatesOnly = false;
+            this.gameControler1.Name = "gameControler1";
+            this.gameControler1.Size = new System.Drawing.Size(614, 426);
+            this.gameControler1.TabIndex = 7;
+            this.gameControler1.Text = "gameControler1";
+            this.gameControler1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.On_KeyDown);
             // 
             // Game_WinForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.gameControl1);
+            this.Controls.Add(this.gameControler1);
+            this.Controls.Add(this.GameUpdateTextbox);
             this.Controls.Add(this.InputField);
             this.Controls.Add(this.MessageWindow);
             this.Controls.Add(this.SubmitButton);
@@ -91,6 +105,7 @@
             this.Activated += new System.EventHandler(this.Game_WinForm_Activated);
             this.Deactivate += new System.EventHandler(this.Game_WinForm_Deactivate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Game_WinForm_FormClosing);
+            this.Load += new System.EventHandler(this.Game_WinForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -102,6 +117,7 @@
         private System.Windows.Forms.Button SubmitButton;
         private System.Windows.Forms.TextBox MessageWindow;
         private System.Windows.Forms.TextBox InputField;
-        private CNA_Client.GameControler gameControl1;
+        private System.Windows.Forms.TextBox GameUpdateTextbox;
+        private InvadersGame_WinFormControl.GameControler gameControler1;
     }
 }

@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
-namespace CNA_Client {
-    public class GameControler : MonoGameControl { 
+namespace InvadersGame_WinFormControl {
+    public partial class GameControler : MonoGameControl { 
         public event EventHandler<GameControlerUpdateEventArgs> GameControlerUpdate;
         public class GameControlerUpdateEventArgs : EventArgs {
             public float ElapsedMilliseconds { get; set; }
@@ -65,7 +65,7 @@ namespace CNA_Client {
             }
         }
 
-        public Client _client;
+        //public Client _client;
         Texture2D temp;
         KeyboardState keyState;
         public PlayerObject _player;
@@ -168,7 +168,7 @@ namespace CNA_Client {
 
         }
 
-        protected virtual void OnGameControlerUpdate(GameControlerUpdateEventArgs e) {
+        public virtual void OnGameControlerUpdate(GameControlerUpdateEventArgs e) {
             EventHandler<GameControlerUpdateEventArgs> handler = GameControlerUpdate;
             if(handler != null) {
                 handler(this, e);
@@ -193,41 +193,11 @@ namespace CNA_Client {
 
             //raise update event
             GameControlerUpdateEventArgs args = new GameControlerUpdateEventArgs();
-            args.ElapsedMilliseconds = (float)_gameTime.ElapsedGameTime.TotalMilliseconds;
-            args.ElapsedTicks = (float)_gameTime.ElapsedGameTime.Ticks;
+            args.ElapsedMilliseconds = _gameMS;
+            //args.ElapsedMilliseconds = (float)_gameTime.ElapsedGameTime.TotalMilliseconds;
+            //args.ElapsedTicks = (float)_gameTime.ElapsedGameTime.Ticks;
             OnGameControlerUpdate(args);
 
-            /*
-            foreach (var key in keyState.GetPressedKeys()) {
-                switch (key) {
-                    
-                    case Keys.Space:
-                        break;
-                    case Keys.Left:
-                        break;
-                    case Keys.Up:
-                        break;
-                    case Keys.Right:
-                        break;
-                    case Keys.Down:
-                        break;
-                    case Keys.A:
-                        _player.MoveX(-1, gameTime);
-                        break;
-                    case Keys.D:
-                        _player.MoveX(1, gameTime);
-                        break;
-                    case Keys.S:
-                        _player.MoveY(1, gameTime);
-                        break;
-                    case Keys.W:
-                        _player.MoveY(-1, gameTime);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            */
 
         }
 
@@ -239,6 +209,7 @@ namespace CNA_Client {
             Editor.spriteBatch.Begin();
 
             // draw text
+            /*
             Editor.spriteBatch.DrawString(
                 Editor.Font, _client._nick,
                 new Vector2(
@@ -246,6 +217,7 @@ namespace CNA_Client {
                     (Editor.graphics.Viewport.Height / 2) - (Editor.FontHeight / 2)),
                     Color.White
                 );
+            */
 
             if (temp != null) {
                 Editor.spriteBatch.Draw(temp, new Vector2(0, 0), Color.White);

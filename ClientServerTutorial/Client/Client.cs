@@ -158,6 +158,7 @@ namespace CNA_Client {
                             break;
                         case Packet.PacketType.ENDSESSION:
                             Console.WriteLine("Disconnecting from server.");
+                            _tcpThread.Abort();
                             _net.Close();
 
                             break;

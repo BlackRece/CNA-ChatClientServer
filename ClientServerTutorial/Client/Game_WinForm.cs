@@ -9,7 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace CNA_Client {
+    /* VS Keeps removing monogame control from form!!! */
     public partial class Game_WinForm : Form {
         Client _client;
 
@@ -17,10 +19,18 @@ namespace CNA_Client {
             //public Game_WinForm(Client client) {
             _client = client;
             InitializeComponent();
+            //invadersGameControl1.gameControler.GameControlerUpdate += OnGameControlerUpdate;
+        }
+
+        private void OnGameControlerUpdate(object sender, GameControler.GameControlerUpdateEventArgs e) {
+            GameUpdateTextbox.Text =
+                "ms: " + e.ElapsedMilliseconds + Environment.NewLine +
+                "ticks: " + e.ElapsedTicks;
+            
         }
 
         private void Game_WinForm_Activated(object sender, EventArgs e) {
-            gameControl1._client = _client;
+            //invadersGameControl1.gameControler._client = _client;
         }
 
         private void Game_WinForm_Deactivate(object sender, EventArgs e) {
@@ -35,6 +45,19 @@ namespace CNA_Client {
                 ) reason = true;
             
             _client.Send(new LeaveGamePacket(reason) { _packetSrc = _client._nick });
+        }
+
+        private void ShowPlayerPos(object sender, EventArgs e) {
+            MessageWindow.Text += Environment.NewLine + gameControler1.GetPos;
+            InputField.Text = gameControler1.GetTime;
+        }
+
+        private void Game_WinForm_Load(object sender, EventArgs e) {
+
+        }
+
+        private void On_KeyDown(object sender, KeyEventArgs e) {
+            gameControler1.On_KeyDown(e);
         }
     }
 }

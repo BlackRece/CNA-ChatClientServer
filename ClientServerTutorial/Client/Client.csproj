@@ -114,6 +114,10 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\InvadersGame_WinFormControl\InvadersGame_WinFormControl.csproj">
+      <Project>{92d88df7-fc47-4077-9813-c42dec7e8e24}</Project>
+      <Name>InvadersGame_WinFormControl</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Packets\Packets.csproj">
       <Project>{f14ce456-1972-4b78-b064-7a3b14d1a62a}</Project>
       <Name>Packets</Name>
