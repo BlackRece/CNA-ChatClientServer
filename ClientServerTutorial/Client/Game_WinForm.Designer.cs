@@ -28,7 +28,7 @@
             this.SubmitButton = new System.Windows.Forms.Button();
             this.MessageWindow = new System.Windows.Forms.TextBox();
             this.InputField = new System.Windows.Forms.TextBox();
-            this.gameControl1 = new CNA_Client.GameControler();
+            this.gamePanel = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
             // ExitButton
@@ -67,21 +67,19 @@
             this.InputField.TabIndex = 4;
             this.InputField.Text = "InputField";
             // 
-            // gameControl1
+            // gamePanel
             // 
-            this.gameControl1.Location = new System.Drawing.Point(174, 12);
-            this.gameControl1.MouseHoverUpdatesOnly = false;
-            this.gameControl1.Name = "gameControl1";
-            this.gameControl1.Size = new System.Drawing.Size(614, 426);
-            this.gameControl1.TabIndex = 5;
-            this.gameControl1.Text = "gameControl1";
+            this.gamePanel.Location = new System.Drawing.Point(174, 13);
+            this.gamePanel.Name = "gamePanel";
+            this.gamePanel.Size = new System.Drawing.Size(614, 425);
+            this.gamePanel.TabIndex = 5;
             // 
             // Game_WinForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.gameControl1);
+            this.Controls.Add(this.gamePanel);
             this.Controls.Add(this.InputField);
             this.Controls.Add(this.MessageWindow);
             this.Controls.Add(this.SubmitButton);
@@ -102,6 +100,6 @@
         private System.Windows.Forms.Button SubmitButton;
         private System.Windows.Forms.TextBox MessageWindow;
         private System.Windows.Forms.TextBox InputField;
-        private CNA_Client.GameControler gameControl1;
+        private System.Windows.Forms.Panel gamePanel;
     }
 }
