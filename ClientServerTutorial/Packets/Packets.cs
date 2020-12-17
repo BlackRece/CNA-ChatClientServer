@@ -151,9 +151,10 @@ namespace Packets {
 
     [Serializable]
     public class JoinGamePacket : Packet {
-        public string _targetHost;
+        public string _host;
+        public int _slot;
         public JoinGamePacket(string host) {
-            _targetHost = host;
+            _host = host;
 
             _packetType = PacketType.JOINGAME;
         }

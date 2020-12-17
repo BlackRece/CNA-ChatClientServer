@@ -16,7 +16,7 @@ namespace InvadersGame_WinFormControl {
     public partial class GameControler : MonoGameControl { 
         public string GetPos { 
             get {
-                return _player.GetPosString;
+                return _players[_playerIndex].GetPosString;
             } 
         }
 
@@ -28,24 +28,38 @@ namespace InvadersGame_WinFormControl {
             }
         }
 
+        private Rectangle _gameArea;
+        public int GameArea_Width {
+            set { if (value > 0) _gameArea.Width = value; }
+        }
+        public int GameArea_Height {
+            set { if (value > 0) _gameArea.Height = value; }
+        }
+
         public string tempStr;
         Texture2D temp;
         int tempDir;
         Vector2 tempPos;
 
-        public Rectangle _gameArea;
-
-        KeyboardState keyState;
-        public Player _player;
+        private Player[] _players;
+        private Vector2 _playerScale = new Vector2(0.75f, 0.75f);
+        const int _playerMax = 4;
+        public int _playerIndex;
+        public float c_PlayerMaxVel = 80.0f;
+        public float c_PlayerSpeed = 20.0f;
 
         private Enemy[] _enemies;
-        const int enemyMax = 20;
+        private Vector2 _enemyScale = new Vector2(0.5f, 0.5f);
+        const int _enemyMax = 20;
+        public float c_EnemyMaxVel = 50.0f;
+        public float c_EnemySpeed = 10.0f;
 
         int gameTicks = 0;
         public GameControler() {
             _gameTime = new GameTime();
-            
-            _enemies = new Enemy[enemyMax];
+
+            _players = new Player[_playerMax];
+            _enemies = new Enemy[_enemyMax];
         }
 
         ~GameControler() {
@@ -79,16 +93,16 @@ namespace InvadersGame_WinFormControl {
             
             switch (e.KeyCode) {
                 case System.Windows.Forms.Keys.W:
-                    _player.MoveTo(Player.Directions.North);
+                    _players[_playerIndex].MoveTo(Player.Directions.North);
                     break;
                 case System.Windows.Forms.Keys.S:
-                    _player.MoveTo(Player.Directions.South);
+                    _players[_playerIndex].MoveTo(Player.Directions.South);
                     break;
                 case System.Windows.Forms.Keys.A:
-                    _player.MoveTo(Player.Directions.West);
+                    _players[_playerIndex].MoveTo(Player.Directions.West);
                     break;
                 case System.Windows.Forms.Keys.D:
-                    _player.MoveTo(Player.Directions.East);
+                    _players[_playerIndex].MoveTo(Player.Directions.East);
                     break;
             }
 
@@ -99,29 +113,6 @@ namespace InvadersGame_WinFormControl {
         protected override void Initialize() {
             // TODO: Add your initialization logic here
             base.Initialize();
-
-            // Create this client's player object
-            _player = new Player() {
-                /*
-                _pos = new Vector2((Editor.graphics.Viewport.Width / 2),
-                                    (Editor.graphics.Viewport.Height / 2)),
-                */
-                _pos = new Vector2(_gameArea.Width * 0.5f, _gameArea.Height * 0.5f),
-                _maxVel = 80.0f,
-                _spd = 20.0f,
-
-                _scale = new Vector2(0.75f, 0.75f)
-            };
-
-            /*
-            _gameArea = new Rectangle(
-                0, 0,
-                Editor.graphics.Viewport.Width,
-                Editor.graphics.Viewport.Height
-            );
-            */
-
-            keyState = Keyboard.GetState();
 
             LoadContent();
 
@@ -134,13 +125,35 @@ namespace InvadersGame_WinFormControl {
             temp = LoadImage(path_redship);
 
             // Player Images
-            string path_RedPlayer = "Content\\image\\PlayerRed.png";
-            string path_BluePlayer = "Content\\image\\PlayerBlue.png";
-            string path_OrangePlayer = "Content\\image\\PlayerOrange.png";
-            string path_GreenPlayer = "Content\\image\\PlayerGreen.png";
+            string[] path_PlayerImages = {
+                "Content\\image\\PlayerRed.png",
+                "Content\\image\\PlayerBlue.png",
+                "Content\\image\\PlayerOrange.png",
+                "Content\\image\\PlayerGreen.png"
+            };
 
-            _player._img = LoadImage(path_BluePlayer);
-            _player._imgArea = _player.GetDestRect();
+            int imgID = 0;
+            for (int i = 0; i < _playerMax; i++) {
+                // Init new player
+                _players[i] = new Player();
+
+                // Load image & set scale
+                _players[i]._img = LoadImage(path_PlayerImages[imgID]);
+                _players[i]._scale = _playerScale;
+                _players[i]._imgArea = _players[i].GetDestRect();
+
+                // Set starting pos
+                _players[i]._pos.X = i * _players[i]._imgArea.Width;
+                _players[i]._pos.Y = _gameArea.Height - _players[i]._imgArea.Height;
+
+                // Set velocity vars
+                _players[i]._maxVel = c_PlayerMaxVel;
+                _players[i]._spd = c_PlayerSpeed;
+
+                // Reset image path index
+                if (imgID >= path_PlayerImages.Length - 1) imgID = 0;
+                else imgID++;
+            }
 
             // Enemy Images
             string[] path_EnemyImages = {
@@ -153,14 +166,14 @@ namespace InvadersGame_WinFormControl {
                 "Content\\image\\EnemyG.png"
             };
 
-            int imgID = 0;
-            for(int i = 0; i<enemyMax; i++) {
+            imgID = 0;
+            for(int i = 0; i<_enemyMax; i++) {
                 // Init new enemy
                 _enemies[i] = new Enemy(_gameArea);
                 
                 // Load image & set scale
                 _enemies[i]._img = LoadImage(path_EnemyImages[imgID]);
-                _enemies[i]._scale = new Vector2(0.5f, 0.5f);
+                _enemies[i]._scale = _enemyScale;
                 _enemies[i]._imgArea = _enemies[i].GetDestRect();
 
                 // Set starting pos
@@ -176,8 +189,8 @@ namespace InvadersGame_WinFormControl {
                 }
 
                 // Set velocity vars
-                _enemies[i]._maxVel = 50;
-                _enemies[i]._spd = 10;
+                _enemies[i]._maxVel = c_EnemyMaxVel;
+                _enemies[i]._spd = c_EnemySpeed;
 
                 // Reset image path index
                 if (imgID >= path_EnemyImages.Length - 1) imgID = 0;
@@ -194,7 +207,9 @@ namespace InvadersGame_WinFormControl {
             float deltaTime = UpdateTimer(gameTime);
 
             // Update current player
-            _player.Update(deltaTime);
+            foreach (Player player in _players) {
+                player.Update(deltaTime);
+            }
 
             #region Update temp image
             /* 
@@ -255,8 +270,10 @@ namespace InvadersGame_WinFormControl {
             */
             #endregion
 
-            // Draw player
-            _player.Draw(Editor.spriteBatch);
+            // Draw player(s)
+            foreach (Player player in _players) {
+                player.Draw(Editor.spriteBatch);
+            }
 
             // Draw enemies
             foreach(Enemy enemy in _enemies) {

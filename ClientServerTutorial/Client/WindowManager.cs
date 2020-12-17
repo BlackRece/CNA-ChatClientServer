@@ -79,12 +79,12 @@
             }
         }
 
-        public bool StartGame(Client client) {
+        public bool StartGame(Client client, int slot) {
             bool result = false;
 
             if(!_isRunning) {
                 _isRunning = true;
-                _winGame = new Game_WinForm(client);
+                _winGame = new Game_WinForm(client, slot);
                 _winGame.ShowDialog();
                 _isRunning = false;
                 _winGame = null;

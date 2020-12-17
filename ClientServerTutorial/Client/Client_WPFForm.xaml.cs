@@ -115,7 +115,7 @@ namespace CNA_Client {
 
             if (_client.Send(new JoinGamePacket(host) 
                 { _packetSrc = _client._nick })) {
-                //this.Hide();    // might close client...
+                //this.Hide();    // closes client...
             }
         }
 

@@ -180,14 +180,14 @@ namespace CNA_Server {
                             Client host = null;
 
                             foreach (Client user in _clients.Values) {
-                                if(user._name == joinGame._targetHost) {
+                                if(user._name == joinGame._host) {
                                     host = user;
                                 }
                             }
 
-                            //ChatMessagePacket resultPacket = null;
-
-                            if (GameSession.Instance.JoinSession(ref client, host)) {
+                            int slotID = GameSession.Instance.JoinSession
+                                (ref client, ref host);
+                            if (slotID >= 0) {
                                 Console.WriteLine("JOINED A GAME");
 
                                 //success - msg client
@@ -197,6 +197,9 @@ namespace CNA_Server {
                                 TcpRespondTo(resultPacket, client);
 
                                 //launch client's game
+                                //if(joinGame._host == null)
+                                    joinGame._host = host._name;
+                                joinGame._slot = slotID;
                                 client.TcpSend(joinGame);
 
                             } else {

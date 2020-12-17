@@ -127,20 +127,21 @@ namespace CNA_Server {
         /// <param name="player"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        public bool JoinSession(ref Client player, Client host) {
-            bool result = false;
+        public int JoinSession(ref Client player, ref Client host) {
+            int result = -1;
             int index = FindSession(ref host);
-
 
             if(index < 0) {
                 StartNewSession(player);
-                result = true;
+                host = player;
+                result = 0;
             } else {
                 Session target = _sessions.ElementAt(index);
 
                 if (target._players.Count < _gamePlayerMax) {
                     target._players.Add(player);
-                    result = true;
+                    host = target._host;
+                    result = target._players.IndexOf(player) + 1;
                 }
             }
 

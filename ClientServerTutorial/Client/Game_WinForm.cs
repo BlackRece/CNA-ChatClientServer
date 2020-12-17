@@ -19,7 +19,7 @@ namespace CNA_Client {
 
         private GameControler gameControler;
 
-        public Game_WinForm(Client client) {
+        public Game_WinForm(Client client, int slot) {
             //public Game_WinForm(Client client) {
             _client = client;
             InitializeComponent();
@@ -39,8 +39,30 @@ namespace CNA_Client {
                 this.gameControler.KeyDown += new KeyEventHandler(this.gameControler.On_KeyDown);
                 this.Controls.Add(this.gameControler);
 
-                gameControler._gameArea.Width = gameControler.Size.Width;
-                gameControler._gameArea.Height = gameControler.Size.Height;
+                this.gameControler.GameArea_Width = gameControler.Size.Width;
+                this.gameControler.GameArea_Height = gameControler.Size.Height;
+
+                this.gameControler.c_PlayerMaxVel = 80.0f;
+                this.gameControler.c_PlayerSpeed = 20.0f;
+
+                this.gameControler.c_EnemyMaxVel = 50.0f;
+                this.gameControler.c_EnemySpeed = 10.0f;
+
+                this.gameControler._playerIndex = slot;
+                
+                /* TODO:
+                 * send udp packets of:
+                 * A) player pos, vel, spd (dead reckoning)
+                 * B) time since last update (milliseconds/seconds?) (dead reckoning)
+                 * C) score
+                 * D) time when bullet fired (use player pos for bullet start)
+                 * 
+                 * receive udp packets of:
+                 * A) other players' pos
+                 * B) enemy pos
+                 * C) bullet pos
+                 * D) players' scores
+                 */
             }
 
         }

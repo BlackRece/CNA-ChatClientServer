@@ -163,7 +163,8 @@ namespace CNA_Client {
 
                             break;
                         case Packet.PacketType.JOINGAME:
-                            _win.StartGame(this);
+                            JoinGamePacket joinPacket = (JoinGamePacket)packet;
+                            _win.StartGame(this, joinPacket._slot);
 
                             break;
                         case Packet.PacketType.USERLIST:
