@@ -90,22 +90,15 @@ namespace InvadersGame_WinFormControl {
         #endregion
 
         public void On_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e) {
-            
-            switch (e.KeyCode) {
-                case System.Windows.Forms.Keys.W:
-                    _players[_playerIndex].MoveTo(Player.Directions.North);
-                    break;
-                case System.Windows.Forms.Keys.S:
-                    _players[_playerIndex].MoveTo(Player.Directions.South);
-                    break;
-                case System.Windows.Forms.Keys.A:
-                    _players[_playerIndex].MoveTo(Player.Directions.West);
-                    break;
-                case System.Windows.Forms.Keys.D:
-                    _players[_playerIndex].MoveTo(Player.Directions.East);
-                    break;
+            if (!_players[_playerIndex]._inputs.Contains(e.KeyCode)) {
+                _players[_playerIndex]._inputs.Add(e.KeyCode);
             }
+        }
 
+        public void On_KeyUp(object sender, System.Windows.Forms.KeyEventArgs e) {
+            if (_players[_playerIndex]._inputs.Contains(e.KeyCode)) {
+                _players[_playerIndex]._inputs.Remove(e.KeyCode);
+            }
         }
 
         #region MonoGame Code

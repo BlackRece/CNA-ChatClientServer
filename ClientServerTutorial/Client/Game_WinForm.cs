@@ -36,7 +36,12 @@ namespace CNA_Client {
                 this.gameControler.TabIndex = 0;
                 this.gameControler.tempStr = client._nick;
                 this.gameControler.Text = "gameControler";
-                this.gameControler.KeyDown += new KeyEventHandler(this.gameControler.On_KeyDown);
+
+                this.gameControler.KeyDown += 
+                    new KeyEventHandler(this.gameControler.On_KeyDown);
+                this.gameControler.KeyUp += 
+                    new KeyEventHandler(this.gameControler.On_KeyUp);
+
                 this.Controls.Add(this.gameControler);
 
                 this.gameControler.GameArea_Width = gameControler.Size.Width;
