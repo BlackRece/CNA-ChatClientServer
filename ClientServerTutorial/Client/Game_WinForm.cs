@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using InvadersGame_WinFormControl;
+using MonoGame.Forms.Controls;
 
 
 namespace CNA_Client {
@@ -15,18 +17,18 @@ namespace CNA_Client {
     public partial class Game_WinForm : Form {
         Client _client;
 
-        private InvadersGame_WinFormControl.GameControler gameControler;
+        private GameControler gameControler;
 
         public Game_WinForm(Client client) {
             //public Game_WinForm(Client client) {
             _client = client;
+            InitializeComponent();
 
             {
-                this.gameControler = new InvadersGame_WinFormControl.GameControler();
+                this.gameControler = new GameControler();
                 // 
-                // gameControler1
+                // gameControler
                 // 
-                this.gameControler._ticks = 0F;
                 this.gameControler.Location = new System.Drawing.Point(174, 12);
                 this.gameControler.MouseHoverUpdatesOnly = false;
                 this.gameControler.Name = "gameControler";
@@ -36,9 +38,11 @@ namespace CNA_Client {
                 this.gameControler.Text = "gameControler";
                 this.gameControler.KeyDown += new KeyEventHandler(this.gameControler.On_KeyDown);
                 this.Controls.Add(this.gameControler);
+
+                gameControler._gameArea.Width = gameControler.Size.Width;
+                gameControler._gameArea.Height = gameControler.Size.Height;
             }
 
-            InitializeComponent();
         }
 
         private void OnGameControlerUpdate(object sender, GameControler.GameControlerUpdateEventArgs e) {
@@ -50,10 +54,10 @@ namespace CNA_Client {
 
         private void Game_WinForm_Activated(object sender, EventArgs e) {
             //invadersGameControl1.gameControler._client = _client;
+            gameControler.Focus();
         }
 
         private void Game_WinForm_Deactivate(object sender, EventArgs e) {
-            gameControler.Focus();
         }
 
         private void Game_WinForm_FormClosing(object sender, FormClosingEventArgs e) {
@@ -73,16 +77,28 @@ namespace CNA_Client {
         }
 
         private void Game_WinForm_Load(object sender, EventArgs e) {
-
+            gameControler.Focus();
         }
 
         private void On_KeyDown(object sender, KeyEventArgs e) {
             gameControler.On_KeyDown(sender, e);
         }
 
-        private void ShowPlayerPos(object sender, InvadersGame_WinFormControl.GameControler.GameControlerUpdateEventArgs e) {
+        private void ShowPlayerPos
+            (object sender, GameControler.GameControlerUpdateEventArgs e) {
             MessageWindow.Text += Environment.NewLine + gameControler.GetPos;
             InputField.Text = gameControler.GetTime;
+        }
+
+        private void Game_WinForm_KeyDown(object sender, KeyEventArgs e) {
+            On_KeyDown(sender, e);
+            MessageWindow.Text = e.KeyCode.ToString();
+
+        }
+
+        private void Game_WinForm_Click(object sender, EventArgs e) {
+            gameControler.Focus();
+            MessageWindow.Text += Environment.NewLine + "Click!";
         }
     }
 }

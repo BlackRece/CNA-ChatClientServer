@@ -80,9 +80,6 @@
     <Compile Include="Client_WPFForm.xaml.cs">
       <DependentUpon>Client_WPFForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GameControler.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Game_WinForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -128,8 +125,41 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\image\EnemyB.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyC.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyD.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyE.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyA.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyF.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\EnemyG.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\PlayerBlue.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\PlayerGreen.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\PlayerOrange.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\image\PlayerRed.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Content\image\RedShip.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Content\image\Spaceship+game+Pixelart+590+x+1800.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -143,13 +173,11 @@
     <Content Include="x86\soft_oal.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\MonoGame.Forms.GL.2.4.0\Build\MonoGame.Forms.GL.targets" Condition="Exists('..\packages\MonoGame.Forms.GL.2.4.0\Build\MonoGame.Forms.GL.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MonoGame.Forms.GL.Content.Builder.2.4.0\Build\MonoGame.Forms.GL.Content.Builder.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Forms.GL.Content.Builder.2.4.0\Build\MonoGame.Forms.GL.Content.Builder.targets'))" />
-    <Error Condition="!Exists('..\packages\MonoGame.Forms.GL.2.4.0\build\MonoGame.Forms.GL.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Forms.GL.2.4.0\build\MonoGame.Forms.GL.targets'))" />
+    <Error Condition="!Exists('..\packages\MonoGame.Forms.GL.2.4.0\Build\MonoGame.Forms.GL.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Forms.GL.2.4.0\Build\MonoGame.Forms.GL.targets'))" />
   </Target>
-  <Import Project="..\packages\MonoGame.Forms.GL.Content.Builder.2.4.0\Build\MonoGame.Forms.GL.Content.Builder.targets" Condition="Exists('..\packages\MonoGame.Forms.GL.Content.Builder.2.4.0\Build\MonoGame.Forms.GL.Content.Builder.targets')" />
-  <Import Project="..\packages\MonoGame.Forms.GL.2.4.0\build\MonoGame.Forms.GL.targets" Condition="Exists('..\packages\MonoGame.Forms.GL.2.4.0\build\MonoGame.Forms.GL.targets')" />
 </Project>
