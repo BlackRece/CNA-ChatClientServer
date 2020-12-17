@@ -13,6 +13,8 @@ namespace InvadersGame_WinFormControl {
         public Rectangle _imgArea;
 
         public Vector2 _pos;
+        public Rectangle _gameArea;
+        public bool _canWarpX, _canWarpY;
 
         public Vector2 _vel;
         public float _maxVel;       // aka max speed 
@@ -29,6 +31,9 @@ namespace InvadersGame_WinFormControl {
         public FlyingObjects() {
             _vel = new Vector2(0.0f, 0.0f);
             _scale = new Vector2(0.0f, 0.0f);
+
+            _canWarpX = false;
+            _canWarpY = false;
         }
 
         ~FlyingObjects() {
@@ -41,6 +46,30 @@ namespace InvadersGame_WinFormControl {
             if (_vel.X > -1.0f && _vel.X < 1.0f) _vel.X = 0.0f;
         }
 
+        private void StayInWidth() {
+            if (_pos.X < 0.0f) {
+                _pos.X = 0.0f;
+                _vel.X = 0.0f;
+            }
+
+            if (_pos.X > _gameArea.Width - _imgArea.Width) {
+                _pos.X = _gameArea.Width - _imgArea.Width;
+                _vel.X = 0.0f;
+            }
+        }
+
+        private void StayInHeight() {
+            if (_pos.Y < 0.0f) {
+                _pos.Y = 0.0f;
+                _vel.Y = 0.0f;
+            }
+
+            if (_pos.Y > _gameArea.Height - _imgArea.Height) {
+                _pos.Y = _gameArea.Height - _imgArea.Height;
+                _vel.Y = 0.0f;
+            }
+        }
+
         public virtual void Draw(SpriteBatch spriteBatch) {
             spriteBatch.Draw(_img, GetDestRect(), Color.White);
         }
@@ -48,6 +77,9 @@ namespace InvadersGame_WinFormControl {
         public virtual void Update(float deltaTime) {
             _pos.X += _vel.X * deltaTime;
             _pos.Y += _vel.Y * deltaTime;
+
+            if(!_canWarpX) StayInWidth();
+            if(!_canWarpY) StayInHeight();
         }
 
         #region Utility Methods and Properites

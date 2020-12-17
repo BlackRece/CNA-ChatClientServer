@@ -135,7 +135,7 @@ namespace InvadersGame_WinFormControl {
             int imgID = 0;
             for (int i = 0; i < _playerMax; i++) {
                 // Init new player
-                _players[i] = new Player();
+                _players[i] = new Player(_gameArea);
 
                 // Load image & set scale
                 _players[i]._img = LoadImage(path_PlayerImages[imgID]);

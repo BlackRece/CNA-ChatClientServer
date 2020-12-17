@@ -11,7 +11,8 @@ namespace InvadersGame_WinFormControl {
     public class Player : FlyingObjects {
         public string _name;
 
-        public Player() {
+        public Player(Rectangle gameArea) {
+            _gameArea = gameArea;
         }
 
         public void MoveTo(Directions dir) {
@@ -33,8 +34,6 @@ namespace InvadersGame_WinFormControl {
                 default:
                     break;
             }
-
-            
         }
 
         private void AddDrag() {

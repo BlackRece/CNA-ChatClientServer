@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 namespace InvadersGame_WinFormControl {
     public class Enemy : FlyingObjects {
         public Directions _dir;
-        Rectangle _gameArea;
 
         public Enemy(Rectangle gameArea) {
             _vel = new Vector2(0.0f, 0.0f);
@@ -34,16 +33,6 @@ namespace InvadersGame_WinFormControl {
                             _vel.X += _spd;
                     }
                     break;
-            }
-        }
-
-        private void StayInArea(Rectangle gameArea) {
-            if (_vel.X < _img.Width) {
-                _vel.X = _img.Width;
-            }
-
-            if (_vel.X > gameArea.Width - _img.Width) {
-                _vel.X = gameArea.Width - _img.Width;
             }
         }
 
