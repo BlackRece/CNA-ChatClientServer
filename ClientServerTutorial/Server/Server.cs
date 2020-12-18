@@ -354,9 +354,12 @@ namespace CNA_Server {
                                 case Packet.PacketType.EMPTY:
                                     /* do nothing */
                                     break;
-                                case Packet.PacketType.CHATMESSAGE:
-                                    Console.WriteLine("CHAT");
-                                    UdpSendToAll((ChatMessagePacket)packet);
+                                case Packet.PacketType.GAMEUPDATE:
+                                    Console.WriteLine("GAMEUPDATE");
+
+                                    GameUpdatePacket updatePacket = (GameUpdatePacket)packet;
+
+
                                     break;
                                 case Packet.PacketType.PRIVATEMESSAGE:
                                     Console.WriteLine("PRIVATE");

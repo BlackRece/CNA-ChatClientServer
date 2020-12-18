@@ -71,24 +71,33 @@ namespace InvadersGame_WinFormControl {
         }
 
         #region GameControl's Update Event Propagation Code
+        //public event EventHandler<GameControlerUpdateEventArgs> GameControlerUpdate;
+        public event GameControlerUpdateEventHandler GameControlerUpdateEvent;
 
-        public event EventHandler<GameControlerUpdateEventArgs> GameControlerUpdate;
-        
+        public delegate void GameControlerUpdateEventHandler
+            (object sender, GameControlerUpdateEventArgs args);
+
         public class GameControlerUpdateEventArgs : EventArgs {
             public float ElapsedMilliseconds { get; set; }
             public float ElapsedSeconds { get; set; }
             public float ElapsedTicks { get; set; }
+            public string Pos { get; set; }
+            public string Vel { get; set; }
+            public float Spd { get; set; }
+            public float TimeElapsed { get; set; }
+            public float TimeFired { get; set; }
         }
 
-        public virtual void OnGameControlerUpdate(GameControlerUpdateEventArgs e) {
-            EventHandler<GameControlerUpdateEventArgs> handler = GameControlerUpdate;
+        protected virtual void OnGameControlerUpdate(GameControlerUpdateEventArgs e) {
+            //EventHandler<GameControlerUpdateEventArgs> handler = GameControlerUpdate;
+            GameControlerUpdateEventHandler handler = GameControlerUpdateEvent;
             if (handler != null) {
                 handler(this, e);
             }
         }
-
         #endregion
 
+        #region GameControl's Keyboard Input Handling Code
         public void On_KeyDown(object sender, System.Windows.Forms.KeyEventArgs e) {
             if (!_players[_playerIndex]._inputs.Contains(e.KeyCode)) {
                 _players[_playerIndex]._inputs.Add(e.KeyCode);
@@ -100,15 +109,14 @@ namespace InvadersGame_WinFormControl {
                 _players[_playerIndex]._inputs.Remove(e.KeyCode);
             }
         }
+        #endregion
 
         #region MonoGame Code
-
         protected override void Initialize() {
             // TODO: Add your initialization logic here
             base.Initialize();
 
             LoadContent();
-
         }
 
         protected void LoadContent() {
@@ -227,9 +235,19 @@ namespace InvadersGame_WinFormControl {
 
             # region Raise update event
             GameControlerUpdateEventArgs args = new GameControlerUpdateEventArgs();
+            //general
             args.ElapsedSeconds = deltaTime;
             args.ElapsedMilliseconds = (float)_gameTime.ElapsedGameTime.TotalMilliseconds;
             args.ElapsedTicks = (float)_gameTime.ElapsedGameTime.Ticks;
+            args.TimeElapsed = deltaTime;
+
+            //this player
+            args.Pos = _players[_playerIndex].GetPosString;
+            args.Vel = _players[_playerIndex].GetVelString;
+            args.Spd = _players[_playerIndex]._spd;
+            args.TimeFired = _players[_playerIndex]._fireStamp;
+
+
             OnGameControlerUpdate(args);
             #endregion
         }
@@ -285,7 +303,6 @@ namespace InvadersGame_WinFormControl {
             }
 
         }
-
         #endregion
 
         #region Helper Methods

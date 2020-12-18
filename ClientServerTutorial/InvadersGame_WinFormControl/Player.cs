@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace InvadersGame_WinFormControl {
     public class Player : FlyingObjects {
         public string _name;
+        public int _score;
         public List<System.Windows.Forms.Keys> _inputs;
 
         public Player(Rectangle gameArea) {

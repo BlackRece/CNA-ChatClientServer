@@ -91,11 +91,9 @@
             this.Name = "Game_WinForm";
             this.Text = "Game_WinForm";
             this.Activated += new System.EventHandler(this.Game_WinForm_Activated);
-            this.Deactivate += new System.EventHandler(this.Game_WinForm_Deactivate);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Game_WinForm_FormClosing);
             this.Load += new System.EventHandler(this.Game_WinForm_Load);
             this.Click += new System.EventHandler(this.Game_WinForm_Click);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Game_WinForm_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

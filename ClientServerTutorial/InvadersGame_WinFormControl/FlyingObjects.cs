@@ -20,6 +20,8 @@ namespace InvadersGame_WinFormControl {
         public float _maxVel;       // aka max speed 
         public float _spd;          // speed of acceleration
 
+        public float _fireStamp;
+
         public enum Directions {
             None,
             North,

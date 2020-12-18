@@ -106,6 +106,29 @@ namespace CNA_Client {
             return result;
         }
 
+        public bool SendSecureUpdates(string pos, string vel, string spd, string time) {
+            bool result = false;
+
+            GameUpdatePacket updatePacket = null;
+
+            try {
+                updatePacket = new GameUpdatePacket(_nick) {
+                    _pPos = _net.EncryptString(pos),
+                    _pVel = _net.EncryptString(vel),
+                    _spd = _net.EncryptString(spd),
+                    _time = _net.EncryptString(time)
+                };
+
+                result = true;
+            } catch (Exception e) {
+                Debug("SendSecureUpdates: Error = " + e.Message);
+            }
+
+            if(result) result = Send(updatePacket, false);
+
+            return result;
+        }
+
         #endregion
 
         #region Tcp/Udp Receive Methods

@@ -17,7 +17,8 @@ namespace Packets {
             SECUREMESSAGE,
             ENDSESSION,
             JOINGAME,
-            LEAVEGAME
+            LEAVEGAME,
+            GAMEUPDATE
         }
 
         public PacketType _packetType { get; protected set; }
@@ -167,6 +168,24 @@ namespace Packets {
             _wasForced = wasForced;
 
             _packetType = PacketType.LEAVEGAME;
+        }
+    }
+
+    [Serializable]
+    public class GameUpdatePacket : Packet {
+        //player info
+        public byte[] _pPos;
+        public byte[] _pVel;
+        public byte[] _spd;
+        public byte[] _time;
+
+        //enemy info
+        public byte[] _ePos;
+        public byte[] _eVel;
+
+        public GameUpdatePacket(string name) {
+            _packetSrc = name;
+            _packetType = PacketType.GAMEUPDATE;
         }
     }
 }
