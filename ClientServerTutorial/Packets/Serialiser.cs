@@ -24,7 +24,7 @@ namespace Packets {
                 buffer = _memStream.ToArray();
             }
 
-            Debug("Serialise: buffer sise = " + buffer.Length.ToString());
+            //Debug("Serialise: buffer sise = " + buffer.Length.ToString());
             return buffer;
         }
 

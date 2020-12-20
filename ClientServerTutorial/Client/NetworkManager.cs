@@ -14,7 +14,8 @@ namespace CNA_Client {
     class NetworkManager {
         private const bool DEBUG = true;
 
-        IPEndPoint _endPoint = new IPEndPoint(IPAddress.Any, 0);
+        IPEndPoint _tcpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        IPEndPoint _udpEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
         UdpClient _udpClient;
         TcpClient _tcpClient;
@@ -68,8 +69,11 @@ namespace CNA_Client {
         public void TcpBeginLogin(string src) {
             Console.WriteLine("Logging in to server...");
 
-            LoginPacket logPacket = 
-                new LoginPacket((IPEndPoint)_tcpClient.Client.LocalEndPoint) { 
+            _tcpEndPoint = (IPEndPoint)_tcpClient.Client.LocalEndPoint;
+
+            LoginPacket logPacket =
+                //new LoginPacket((IPEndPoint)_tcpClient.Client.LocalEndPoint) { 
+                new LoginPacket(_tcpEndPoint) {
                     _packetSrc = src, _clientKey = _crypt.PublicKey
                 };
             
@@ -127,7 +131,7 @@ namespace CNA_Client {
         public Packet UdpReadPacket() {
             Packet result = null;
             try { 
-                result = Serialiser.Deserialise(_udpClient.Receive(ref _endPoint));
+                result = Serialiser.Deserialise(_udpClient.Receive(ref _udpEndPoint));
             } catch (System.Threading.ThreadAbortException) {
                 // expected exception since app is being closed
             } catch (Exception e) {

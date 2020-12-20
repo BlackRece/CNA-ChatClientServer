@@ -65,6 +65,25 @@ namespace InvadersGame_WinFormControl {
         ~GameControler() {
         }
 
+        public void UpdateGameData(
+            int slot, string name, float[] pos, float[] vel,
+            float spd, float elapsed, float fired
+        ) {
+            Vector2 npos = new Vector2();
+            npos.X = pos[0];
+            npos.Y = pos[1];
+
+            Vector2 nvel = new Vector2();
+            nvel.X = vel[0];
+            nvel.Y = vel[1];
+
+            _players[slot]._name = name;
+            _players[slot]._pos = npos;
+            _players[slot]._vel = nvel;
+            _players[slot]._spd = spd;
+            _players[slot]._fireStamp = fired;
+        }
+
         private float UpdateTimer(GameTime gameTime) {
             _gameTime = gameTime;
             return (float)_gameTime.ElapsedGameTime.TotalSeconds;
@@ -81,6 +100,7 @@ namespace InvadersGame_WinFormControl {
             public float ElapsedMilliseconds { get; set; }
             public float ElapsedSeconds { get; set; }
             public float ElapsedTicks { get; set; }
+            public int Slot { get; set; }
             public string Pos { get; set; }
             public string Vel { get; set; }
             public float Spd { get; set; }
@@ -242,6 +262,7 @@ namespace InvadersGame_WinFormControl {
             args.TimeElapsed = deltaTime;
 
             //this player
+            args.Slot = _playerIndex;
             args.Pos = _players[_playerIndex].GetPosString;
             args.Vel = _players[_playerIndex].GetVelString;
             args.Spd = _players[_playerIndex]._spd;

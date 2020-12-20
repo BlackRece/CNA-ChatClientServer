@@ -87,7 +87,7 @@ namespace CNA_Server {
 
             try {
                 while ((receivedPacket = client.TcpRead()) != null) {
-                    Console.Write("TCP Receieved: ");
+                    //Console.Write("TCP Receieved: ");
 
                     // act on packet type
                     switch (receivedPacket._packetType) {
@@ -143,6 +143,7 @@ namespace CNA_Server {
                             loginPacket._serverKey = client.UpdateRSA(loginPacket);
 
                             client.TcpSend(loginPacket);
+                            client.UdpSend(loginPacket, ref _udpListener);
                             
                             break;
                         case Packet.PacketType.SECUREMESSAGE:
@@ -191,10 +192,10 @@ namespace CNA_Server {
                                 Console.WriteLine("JOINED A GAME");
 
                                 //success - msg client
-                                PrivateMessagePacket resultPacket = 
+                                PrivateMessagePacket privatePacket = 
                                     new PrivateMessagePacket(client._name, "Started Game Session") 
                                     { _packetSrc = _serverName };
-                                TcpRespondTo(resultPacket, client);
+                                TcpRespondTo(privatePacket, client);
 
                                 //launch client's game
                                 //if(joinGame._host == null)
@@ -261,6 +262,38 @@ namespace CNA_Server {
 
                             break;
 
+                        case Packet.PacketType.GAMEUPDATESECURE:
+                            //Console.WriteLine("GAMEUPDATE - UDP");
+
+                            // decrypt packet
+                            Dictionary<string, string> gameData =
+                                client.GetSecureUpdate((GameUpdatePacket)receivedPacket);
+
+                            // process packet
+                            if(client._gameClient == null) {
+                                client._gameClient = new GameClient();
+                            }
+
+                            Dictionary<string, string> updateData =
+                                client._gameClient.UpdateData(gameData);
+
+                            // encrypt packet
+                            GameUpdatePacket updatePacket = client.SetSecureUpdate(updateData);
+
+                            // send to all clients
+                            //UdpSendToAll(updatePacket);
+                            TcpSendToAll(updatePacket);
+                            break;
+                        case Packet.PacketType.GAMEPACKET:
+                            if (client._gameClient == null) {
+                                client._gameClient = new GameClient();
+                            }
+                            
+                            GamePacket resultPacket = 
+                                client._gameClient.UpdateRaw((GamePacket)receivedPacket);
+
+                            TcpSendToAll(resultPacket);
+                            break;
                         default:
                             break;
                     }
@@ -332,19 +365,13 @@ namespace CNA_Server {
             }
         }
 
-        Packet UdpGetPacket(byte[] buffer) {
-            BinaryFormatter _formatter = new BinaryFormatter();
-            MemoryStream memStream = new MemoryStream(buffer);
-            return _formatter.Deserialize(memStream) as Packet;
-        }
-
         void UdpListen() {
             try {
                 IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
 
                 while (true) {
                     byte[] buffer = _udpListener.Receive(ref endPoint);
-                    Packet packet = UdpGetPacket(buffer);
+                    Packet packet = Serialiser.Deserialise(buffer);
 
                     foreach (Client c in _clients.Values) {
                         if (endPoint.ToString() == c._endPoint.ToString()) {
@@ -354,11 +381,22 @@ namespace CNA_Server {
                                 case Packet.PacketType.EMPTY:
                                     /* do nothing */
                                     break;
-                                case Packet.PacketType.GAMEUPDATE:
-                                    Console.WriteLine("GAMEUPDATE");
+                                case Packet.PacketType.GAMEUPDATESECURE:
+                                    Console.WriteLine("GAMEUPDATE - UDP");
 
-                                    GameUpdatePacket updatePacket = (GameUpdatePacket)packet;
+                                    // decrypt packet
+                                    Dictionary<string, string> gameData =
+                                        c.GetSecureUpdate((GameUpdatePacket)packet);
 
+                                    // process packet
+                                    Dictionary<string, string> updateData = 
+                                        c._gameClient.UpdateData(gameData);
+
+                                    // encrypt packet
+                                    GameUpdatePacket updatePacket = c.SetSecureUpdate(updateData);
+
+                                    // send to all clients
+                                    UdpSendToAll(updatePacket);
 
                                     break;
                                 case Packet.PacketType.PRIVATEMESSAGE:

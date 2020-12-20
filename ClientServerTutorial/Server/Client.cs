@@ -24,6 +24,8 @@ namespace CNA_Server {
             get { return _endPoint.Port; }
         }
 
+        public GameClient _gameClient;
+
         NetworkStream _stream;
 
         BinaryReader _reader;
@@ -107,6 +109,43 @@ namespace CNA_Server {
 
         public string GetSecureMessage(SecurePacket safePacket) {
             return _crypt.DecryptString(safePacket._data);
+        }
+
+        public Dictionary<string, string> GetSecureUpdate(GameUpdatePacket gamePacket) {
+            Dictionary<string, string> updateData = new Dictionary<string, string>();
+            updateData.Add("slot", gamePacket._slot.ToString());
+            updateData.Add(
+                "pos",
+                _crypt.DecryptString(gamePacket._pPos)
+                );
+
+            updateData.Add(
+                "vel",
+                _crypt.DecryptString(gamePacket._pVel)
+                );
+
+            updateData.Add(
+                "spd",
+                _crypt.DecryptString(gamePacket._spd)
+                );
+
+            updateData.Add(
+                "time",
+                _crypt.DecryptString(gamePacket._time)
+                );
+
+            return updateData;
+        }
+
+        public GameUpdatePacket SetSecureUpdate(Dictionary<string, string> data) {
+            GameUpdatePacket result = new GameUpdatePacket(_name, Int32.Parse(data["slot"])) {
+                _pPos = _crypt.EncryptString(data["pos"]),
+                _pVel = _crypt.EncryptString(data["vel"]),
+                _spd = _crypt.EncryptString(data["spd"]),
+                _time = _crypt.EncryptString(data["time"])
+            };
+
+            return result;
         }
 
         public byte[] SetSecureMessage(string message) {

@@ -18,7 +18,8 @@ namespace Packets {
             ENDSESSION,
             JOINGAME,
             LEAVEGAME,
-            GAMEUPDATE
+            GAMEUPDATESECURE,
+            GAMEPACKET
         }
 
         public PacketType _packetType { get; protected set; }
@@ -174,6 +175,7 @@ namespace Packets {
     [Serializable]
     public class GameUpdatePacket : Packet {
         //player info
+        public int _slot;
         public byte[] _pPos;
         public byte[] _pVel;
         public byte[] _spd;
@@ -183,9 +185,28 @@ namespace Packets {
         public byte[] _ePos;
         public byte[] _eVel;
 
-        public GameUpdatePacket(string name) {
+        public GameUpdatePacket(string name, int slot) {
+            _slot = slot;
+            
             _packetSrc = name;
-            _packetType = PacketType.GAMEUPDATE;
+            _packetType = PacketType.GAMEUPDATESECURE;
+        }
+    }
+
+    [Serializable]
+    public class GamePacket : Packet {
+        public int _slot;
+        public float[] _pPos;
+        public float[] _pVel;
+        public float _pSpd;
+        public float _pElapsed;
+        public float _pFired;
+
+        public GamePacket(int slot, string name) {
+            _slot = slot;
+
+            _packetSrc = name;
+            _packetType = PacketType.GAMEPACKET;
         }
     }
 }

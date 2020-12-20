@@ -75,15 +75,34 @@ namespace CNA_Client {
                 "time: " + e.ElapsedMilliseconds + Environment.NewLine +
                 "bulletTime: " + e.ElapsedMilliseconds;
 
+            /*
             _ = _client.SendSecureUpdates(
-                    e.Pos, e.Vel, e.Spd.ToString(),
+                    e.Slot, e.Pos, e.Vel, e.Spd.ToString(),
                     e.TimeElapsed + ":" + e.TimeFired
                 );
+            */
+            string[] sPos = e.Pos.Split(',');
+            float[] fPos = {
+                float.Parse(sPos[0]),
+                float.Parse(sPos[1])
+            };
+
+            string[] sVel = e.Vel.Split(',');
+            float[] fVel = {
+                float.Parse(sVel[0]),
+                float.Parse(sVel[1])
+            };
+
+            _ = _client.SendUpdate(e.Slot, fPos, fVel, e.Spd,
+                    e.TimeElapsed, e.TimeFired);
         }
 
-        public void OnServerUpdate() {
-
+        /*
+        public void UpdateGameControler(int slot, float[] pos, float[] vel, float spd, float elapsed, float fired) {
+            
+            gameControler.UpdateGameData(slot, pos, vel, spd, elapsed, fired);
         }
+        */
 
         private void Game_WinForm_Activated(object sender, EventArgs e) {
             //invadersGameControl1.gameControler._client = _client;

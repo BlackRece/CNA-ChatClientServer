@@ -106,13 +106,31 @@ namespace CNA_Client {
             return result;
         }
 
-        public bool SendSecureUpdates(string pos, string vel, string spd, string time) {
+        public bool SendUpdate(int slot, float[] pos, float[] vel, float spd, float elapsed, float fired) {
+            GamePacket updatePacket = new GamePacket(slot, _nick) {
+                _pPos = pos, _pVel = vel, _pSpd = spd,
+                _pElapsed = elapsed, _pFired = fired
+            };
+
+            return Send(updatePacket);
+        }
+
+        public bool SendSecureUpdates(int slot, string pos, string vel, string spd, string time) {
             bool result = false;
+
+            /* NOTE: Idealy it would be a good idea to enrypt
+             * the data sent to and from the game to prevent
+             * others from trying to change the package contents
+             * to gain an unfair advantage. 
+             * For example, changing position to gain access to 
+             * areas of the game's level or adjusting the amount
+             * of in-game currency.
+             */
 
             GameUpdatePacket updatePacket = null;
 
             try {
-                updatePacket = new GameUpdatePacket(_nick) {
+                updatePacket = new GameUpdatePacket(_nick, slot) {
                     _pPos = _net.EncryptString(pos),
                     _pVel = _net.EncryptString(vel),
                     _spd = _net.EncryptString(spd),
@@ -124,7 +142,15 @@ namespace CNA_Client {
                 Debug("SendSecureUpdates: Error = " + e.Message);
             }
 
-            if(result) result = Send(updatePacket, false);
+            /* NOTE: Idealy, should use UDP for frequent packets sends.
+             * However, there is a bug that the endpoint used when
+             * logging in does not match the one stored endpoint on the
+             * server meaning the client never receives the udp packet
+             * to update the game state.
+             * As an alternative, the TCP method is used.
+             */
+            //if(result) result = Send(updatePacket, false);
+            if (result) result = Send(updatePacket);
 
             return result;
         }
@@ -141,7 +167,7 @@ namespace CNA_Client {
                 
                 packet = _net.TcpReadPacket();
                 
-                Debug("TcpProcessServerPacket: packet = " + packet);
+                //Debug("TcpProcessServerPacket: packet = " + packet);
 
                 if(packet != null) {
 
@@ -203,6 +229,26 @@ namespace CNA_Client {
                             ServerMessagePacket serverMessage = (ServerMessagePacket)packet;
                             _win.UpdateChat(serverMessage._messageSent);
                             break;
+                        case Packet.PacketType.GAMEUPDATESECURE:
+                            GameUpdatePacket updatePacket = (GameUpdatePacket)packet;
+
+                            _win.UpdateGame2(
+                                updatePacket._slot, updatePacket._packetSrc,
+                                _net.DecryptString(updatePacket._pPos),
+                                _net.DecryptString(updatePacket._pVel),
+                                _net.DecryptString(updatePacket._spd),
+                                _net.DecryptString(updatePacket._time)
+                                );
+                            break;
+                        case Packet.PacketType.GAMEPACKET:
+                            GamePacket data = (GamePacket)packet;
+
+                            _win.UpdateGame(
+                                data._slot, data._packetSrc,
+                                data._pPos, data._pVel, data._pSpd,
+                                data._pElapsed, data._pFired
+                                );
+                            break;
                     }
                 } 
             }
@@ -217,6 +263,17 @@ namespace CNA_Client {
                     switch (packet._packetType) {
                         case Packet.PacketType.EMPTY:
                             /* do nothing */
+                            break;
+                        case Packet.PacketType.GAMEUPDATESECURE:
+                            GameUpdatePacket updatePacket = (GameUpdatePacket)packet;
+
+                            _win.UpdateGame2(
+                                updatePacket._slot, updatePacket._packetSrc,
+                                _net.DecryptString(updatePacket._pPos),
+                                _net.DecryptString(updatePacket._pVel),
+                                _net.DecryptString(updatePacket._spd),
+                                _net.DecryptString(updatePacket._time)
+                                );
                             break;
                         /*
                         case Packet.PacketType.LOGIN:
