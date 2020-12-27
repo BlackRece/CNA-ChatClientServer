@@ -111,6 +111,10 @@ namespace CNA_Server {
             return _crypt.DecryptString(safePacket._data);
         }
 
+        public string GetSecureMessage(byte[] data) {
+            return _crypt.DecryptString(data);
+        }
+
         public Dictionary<string, string> GetSecureUpdate(GameUpdatePacket gamePacket) {
             Dictionary<string, string> updateData = new Dictionary<string, string>();
             updateData.Add("slot", gamePacket._slot.ToString());

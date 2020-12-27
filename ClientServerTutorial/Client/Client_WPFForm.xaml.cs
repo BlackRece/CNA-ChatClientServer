@@ -77,7 +77,12 @@ namespace CNA_Client {
         #endregion
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e) {
-            if (_client.SendSecure(InputField.Text)) {
+            string target = null;
+
+            if (UserList.SelectedItem != null)
+                target = UserList.SelectedItem.ToString();
+
+            if (_client.SendSecure(InputField.Text, target)) {
                 InputField.Clear();
                 InputField.Focus();
             }
@@ -120,6 +125,10 @@ namespace CNA_Client {
         }
 
         private void Window_Activated(object sender, EventArgs e) {
+            GetUserList();
+        }
+
+        private void Clear_Selection_Click(object sender, RoutedEventArgs e) {
             GetUserList();
         }
     }

@@ -174,6 +174,7 @@
             this.Clear_Selected.TabIndex = 10;
             this.Clear_Selected.Text = "Clear Selected Users";
             this.Clear_Selected.UseVisualStyleBackColor = true;
+            this.Clear_Selected.Click += new System.EventHandler(this.Clear_Selected_Click);
             // 
             // LaunchGame
             // 

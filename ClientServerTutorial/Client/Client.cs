@@ -95,13 +95,18 @@ namespace CNA_Client {
             return result;
         }
 
-        public bool SendSecure(string message, bool viaTcp = true) {
+        public bool SendSecure(string message, string target = null, bool viaTcp = true) {
             bool result = false;
 
-            if (viaTcp)
-                result = _net.TcpSendSecurePacket(message, _nick);
-            else
-                result = _net.UdpSendSecurePacket(message, _nick);
+            if (target == null) {
+
+                if (viaTcp)
+                    result = _net.TcpSendSecurePacket(message, _nick);
+                else
+                    result = _net.UdpSendSecurePacket(message, _nick);
+            } else {
+                result = _net.TcpSendSecurePrivatePacket(target, message, _nick);
+            }
 
             return result;
         }
@@ -188,8 +193,20 @@ namespace CNA_Client {
 
                             break;
                         case Packet.PacketType.PRIVATEMESSAGE:
-                            PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
-                            _win.UpdateChat(privPacket._packetSrc + ": " + privPacket._message);
+                            if (packet._isSecure) {
+                                PrivateSecureMessagePacket privPacket = 
+                                    (PrivateSecureMessagePacket)packet;
+                                _win.UpdateChat(
+                                    "PRIVATE from " + privPacket._packetSrc + 
+                                    ": " + _net.DecryptString(privPacket._data)
+                                    );
+                            } else {
+                                PrivateMessagePacket privPacket = (PrivateMessagePacket)packet;
+                                _win.UpdateChat(
+                                    "PRIVATE from " + privPacket._packetSrc + 
+                                    ": " + privPacket._message
+                                    );
+                            }
 
                             break;
                         case Packet.PacketType.LOGIN:

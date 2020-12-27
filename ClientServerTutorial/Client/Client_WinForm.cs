@@ -83,9 +83,12 @@ namespace CNA_Client {
         #endregion 
 
         private void SubmitButton_Click(object sender, EventArgs e) {
-            //if (_client.TcpSendPacket(new ChatMessagePacket(InputField.Text))) {
-            //if (_client.UdpSendPacket(new ChatMessagePacket(InputField.Text))) {
-            if (_client.SendSecure(InputField.Text)) {
+            string target = null;
+
+            if (UserList.SelectedItem != null)
+                target = UserList.SelectedItem.ToString();
+
+            if (_client.SendSecure(InputField.Text, target)) {
                 InputField.Clear();
                 InputField.Focus();
             }
@@ -101,6 +104,7 @@ namespace CNA_Client {
                     InputField.Focus();
                 }
             }
+            GetUserList();
         }
 
         private void DisplayError(Exception e) {
@@ -127,6 +131,11 @@ namespace CNA_Client {
             };
 
             _client.Send(joinGame);
+        }
+
+        private void Clear_Selected_Click(object sender, EventArgs e) {
+            GetUserList();
+            UserList.ClearSelected();
         }
     }
 }

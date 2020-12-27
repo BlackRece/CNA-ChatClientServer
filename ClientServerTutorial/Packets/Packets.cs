@@ -47,8 +47,22 @@ namespace Packets {
         public string _target;
 
         public PrivateMessagePacket(string target, string message) {
-            _isSecure = true;
+            _isSecure = false;
             _message = message;
+            _target = target;
+
+            _packetType = PacketType.PRIVATEMESSAGE;
+        }
+    }
+
+    [Serializable]
+    public class PrivateSecureMessagePacket : Packet {
+        public byte[] _data;
+        public string _target;
+
+        public PrivateSecureMessagePacket(string target, byte[] message) {
+            _isSecure = true;
+            _data = message;
             _target = target;
 
             _packetType = PacketType.PRIVATEMESSAGE;

@@ -124,6 +124,16 @@ namespace CNA_Client {
             return TcpSendPacket(securePacket);
         }
 
+        public bool TcpSendSecurePrivatePacket(string target, string message, string src) {
+            PrivateSecureMessagePacket psPacket = 
+                new PrivateSecureMessagePacket(
+                    target, 
+                    _crypt.EncryptString(message)) 
+                    { _packetSrc = src };
+            
+            return TcpSendPacket(psPacket);
+        }
+
         #endregion
 
         #region UDP related methods

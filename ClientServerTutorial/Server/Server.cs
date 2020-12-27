@@ -104,8 +104,16 @@ namespace CNA_Server {
                             break;
                         case Packet.PacketType.PRIVATEMESSAGE:
                             Console.WriteLine("PRIVATE");
-
-                            TcpRespondTo((PrivateMessagePacket)receivedPacket, client);
+                            if (receivedPacket._isSecure) {
+                                PrivateSecureMessagePacket psPacket= (PrivateSecureMessagePacket)receivedPacket;
+                                TcpSecureRespondTo(
+                                    client.GetSecureMessage(psPacket._data),
+                                    psPacket._packetSrc,
+                                    psPacket._target
+                                    );
+                            } else {
+                                TcpRespondTo((PrivateMessagePacket)receivedPacket, client);
+                            }
 
                             break;
                         case Packet.PacketType.SERVERMESSAGE:
@@ -362,6 +370,19 @@ namespace CNA_Server {
                     privPacket._message = source._name + ": " + privPacket._message;
                     pair.Value.TcpSend(privPacket);
                 } 
+            }
+        }
+
+        void TcpSecureRespondTo(string message, string src, string target) {
+            foreach (Client client in _clients.Values) {
+                if (client._name == target) {
+                    PrivateSecureMessagePacket privPacket = 
+                        new PrivateSecureMessagePacket(
+                            target,
+                            client.SetSecureMessage(message)
+                        ) { _packetSrc = src };
+                    client.TcpSend(privPacket);
+                }
             }
         }
 
